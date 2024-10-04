@@ -38,12 +38,11 @@ services:
         POSTGRES_USER: "volgait_practice"
       # SPostgreSQL password
         POSTGRES_PASSWORD: "root"
+    ports:
+      - "5432:80"
     volumes:
       # Mount a volume to persist PostgreSQL data
       - postgres_data:/var/lib/postgresql/data
-    networks:
-      - custom_network
-    restart: always
   pgadmin:
     image: dpage/pgadmin4:latest
     environment:
@@ -60,12 +59,6 @@ services:
     depends_on:
       # Ensure that this service starts after 'db'
       - postgres_db
-    networks:
-      - custom_network
-    restart: always
-networks:
-  custom_network:
-    driver: bridge 
 volumes:
   # volume for PostgreSQL
   postgres_data:
