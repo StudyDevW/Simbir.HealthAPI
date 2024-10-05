@@ -34,7 +34,7 @@ services:
     container_name: Simbir.Health.PostgreSQL
     build:
       context: .
-      dockerfile: Simbir.Health.PostgreSQL/postgres/Dockerfile
+      dockerfile: Simbir.Health.PostgreSQL/Dockerfile
     environment:
         POSTGRES_DB: "simbirhealth"
         POSTGRES_USER: "volgait_practice"
