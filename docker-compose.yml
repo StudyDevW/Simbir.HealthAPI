@@ -35,11 +35,8 @@ services:
       dockerfile: Simbir.Health.TimetableAPI/Dockerfile
   #PostgreSQL
   postgres_db:
-    image: ${DOCKER_REGISTRY-}simbirhealth_postgres:latest
+    image: postgres:17.0-bookworm
     container_name: Simbir.Health.PostgreSQL
-    build:
-      context: ./Simbir.Health.PostgreSQL
-      dockerfile: /Dockerfile
     environment:
         POSTGRES_DB: "simbirhealth"
         POSTGRES_USER: "volgait_practice"
@@ -47,7 +44,9 @@ services:
     ports:
       - "5432:80"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - ./postgres_data:/var/lib/postgresql/data
+  #
+
   #PgAdmin
   pgadmin:
     image: dpage/pgadmin4:latest
@@ -61,9 +60,11 @@ services:
       - pgadmin_data:/var/lib/pgadmin
     depends_on:
       - postgres_db
+  #
+
   #Redis
   redis_cache:
-    image: redis:latest
+    image: redis:7.4-bookworm
     container_name: Simbir.Health.Redis
     environment:
       - REDIS_PASSWORD=root
@@ -72,7 +73,7 @@ services:
     ports:
       - "6380:6379"
     volumes:
-      - ./redisdata:/data
+      - ./redis_cache:/data
     deploy:
       resources:
         limits:
@@ -89,13 +90,12 @@ services:
     restart: unless-stopped
     tty: true
     stdin_open: true
+  #
+
   #RabbitMQ
   rabbitmq_broker:
-    image: ${DOCKER_REGISTRY-}simbirhealth_rabbitmq:latest
+    image: rabbitmq:3-management
     container_name: Simbir.Health.RabbitMQ
-    build:
-      context: ./Simbir.Health.RabbitMQ
-      dockerfile: /management/Dockerfile
     hostname: rabbitmq
     restart: always
     volumes:
@@ -104,6 +104,7 @@ services:
     ports:
       - 5672:5672
       - 15672:15672
+  #
 volumes:
   postgres_data:
   pgadmin_data:

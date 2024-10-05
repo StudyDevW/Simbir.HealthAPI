@@ -1,4 +1,5 @@
-﻿using Simbir.Health.AccountAPI.Model;
+﻿using Microsoft.AspNetCore.Mvc;
+using Simbir.Health.AccountAPI.Model;
 using Simbir.Health.AccountAPI.Model.Database.DBO;
 using Simbir.Health.AccountAPI.Model.Database.DTO;
 using Simbir.Health.AccountAPI.SDK.Services;
@@ -7,16 +8,21 @@ namespace Simbir.Health.AccountAPI.SDK
 {
     public class DatabaseSDK : IDatabaseService
     {
-        public DatabaseSDK() { 
-        
+        private readonly ILogger _logger;
+
+        public DatabaseSDK() {
+            _logger = LoggerFactory.Create(builder => builder.AddConsole()).CreateLogger(string.Empty);
         }
 
 
 
-        public void RegisterUser(Auth_SignUp dto)
+        public bool RegisterUser(Auth_SignUp dto)
         {
             if (dto == null)
-                return;
+            {
+                _logger.LogError("RegisterUser: dto==null");
+                return false;
+            }
 
             List<string> roles_user = new List<string>() { "User" };
 
@@ -33,7 +39,33 @@ namespace Simbir.Health.AccountAPI.SDK
             {
                 db.userTableObj.Add(usersTable);
                 db.SaveChanges();
+
+                _logger.LogInformation($"RegisterUser: {dto.firstName}, зарегистрировался!");
             }
+
+            return true;
+        }
+
+        public bool CheckUser(Auth_SignIn dto)
+        {
+            if (dto == null)
+            {
+                _logger.LogError("CheckUser: dto==null");
+                return false;
+            }
+
+            using (DataContext db = new DataContext())
+            {
+                foreach (var obj in db.userTableObj)
+                {
+                    if (obj.username == dto.username &&
+                        obj.password == dto.password)
+                        return true;
+                }
+            }
+
+            _logger.LogError("CheckUser: Неправильное имя пользователя или пароль!");
+            return false;
         }
     }
 }
