@@ -30,37 +30,71 @@ services:
       context: .
       dockerfile: Simbir.Health.TimetableAPI/Dockerfile
   postgres_db:
-    image: postgres:latest
-    container_name: postgres_db
+    image: ${DOCKER_REGISTRY-}simbirhealth_postgres:latest
+    container_name: Simbir.Health.PostgreSQL
+    build:
+      context: .
+      dockerfile: Simbir.Health.PostgreSQL/postgres/Dockerfile
     environment:
         POSTGRES_DB: "simbirhealth"
-      # PostgreSQL username
         POSTGRES_USER: "volgait_practice"
-      # SPostgreSQL password
         POSTGRES_PASSWORD: "root"
     ports:
       - "5432:80"
     volumes:
-      # Mount a volume to persist PostgreSQL data
       - postgres_data:/var/lib/postgresql/data
   pgadmin:
     image: dpage/pgadmin4:latest
+    container_name: Simbir.Health.PgAdmin
     environment:
-      # Default email for pgAdmin 4
       PGADMIN_DEFAULT_EMAIL: qwerty11ert@gmail.com
-      # Password for pgAdmin 4
       PGADMIN_DEFAULT_PASSWORD: Werty11ert
     ports:
-      # Map host port 5050 to container port 80
       - "5050:80"
     volumes:
-      # Mount a volume to persist pgAdmin 4 data
       - pgadmin_data:/var/lib/pgadmin
     depends_on:
-      # Ensure that this service starts after 'db'
       - postgres_db
+  redis_cache:
+    image: redis:latest
+    container_name: Simbir.Health.Redis
+    environment:
+      - REDIS_PASSWORD=root
+      - REDIS_USER=admin
+      - REDIS_USER_PASSWORD=admin
+    ports:
+      - "6380:6379"
+    volumes:
+      - ./redisdata:/data
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "root", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+    tty: true
+    stdin_open: true
+  rabbitmq_broker:
+    image: rabbitmq:3-management
+    container_name: Simbir.Health.RabbitMQ
+    hostname: rabbitmq
+    restart: always
+    volumes:
+      - ./rabbitmq_data:/var/lib/rabbitmq
+      - ./rabbitmq_data:/var/log/rabbitmq
+    ports:
+      - 5672:5672
+      - 15672:15672
 volumes:
-  # volume for PostgreSQL
   postgres_data:
-  # Volume for pgAdmin 4
   pgadmin_data:
+  rabbitmq_broker:  
+  redis_cache:  
