@@ -1,4 +1,7 @@
-﻿using Microsoft.IdentityModel.Tokens;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
+using Simbir.Health.AccountAPI.Model.Database.DTO.ValidTokens;
 using Simbir.Health.AccountAPI.SDK.Services;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -9,10 +12,16 @@ namespace Simbir.Health.AccountAPI.SDK
     public class JwtSDK : IJwtService
     {
         private readonly ILogger _logger;
+        private readonly IConfiguration _configuration;
+        private readonly ICacheService _cache;
 
-        public JwtSDK()
+        public JwtSDK() { }
+
+        public JwtSDK(IConfiguration conf, ICacheService cache)
         {
             _logger = LoggerFactory.Create(builder => builder.AddConsole()).CreateLogger(string.Empty);
+            _configuration = conf;
+            _cache = cache;
         }
 
         private string? RSAPrivateKey(string? type)
@@ -59,7 +68,7 @@ cDjfBhQxF3tC5PyAmi4vyagwqWJ+OTfJI7eDvO4Jl+1QWeYc5/E+jULr9cwsv+l7
             }
         }
 
-        private string? RSAPublicKey(string? type)
+        public string? RSAPublicKey(string? type)
         {
             if (type == "RT")
             {
@@ -85,7 +94,7 @@ BVVGSvbFKDiaJqprAgMBAAE=
             }
         }
 
-        public async Task<JwtSecurityToken> RSAJwtValidation(IConfiguration conf, string? token)
+        private async Task<JwtSecurityToken> RSAJwtValidation(string? token)
         {
             var rsa = RSA.Create();
 
@@ -95,14 +104,15 @@ BVVGSvbFKDiaJqprAgMBAAE=
 
             TokenValidationParameters tk_valid = new TokenValidationParameters
             {
-                ValidIssuer = conf["Jwt:Issuer"],
-                ValidAudience = conf["Jwt:Audience"],
+                ValidIssuer = _configuration["Jwt:Issuer"],
+                ValidAudience = _configuration["Jwt:Audience"],
                 IssuerSigningKey = issuerSigningKey,
                 ValidateIssuer = true,
                 ValidateAudience = true,
-                ValidateLifetime = true,
                 ValidateIssuerSigningKey = true,
                 RequireSignedTokens = true,
+                RequireExpirationTime = false,
+                ValidateLifetime = false
             };
 
             try
@@ -118,7 +128,7 @@ BVVGSvbFKDiaJqprAgMBAAE=
             }
         }
 
-        public async Task<JwtSecurityToken> RSARefreshTokenValidation(IConfiguration conf, string? token)
+        private async Task<JwtSecurityToken> RSARefreshTokenValidation(string? token)
         {
             var rsa = RSA.Create();
 
@@ -128,14 +138,15 @@ BVVGSvbFKDiaJqprAgMBAAE=
 
             TokenValidationParameters tk_valid = new TokenValidationParameters
             {
-                ValidIssuer = conf["Jwt:Issuer"],
-                ValidAudience = conf["Jwt:Audience"],
+                ValidIssuer = _configuration["Jwt:Issuer"],
+                ValidAudience = _configuration["Jwt:Audience"],
                 IssuerSigningKey = issuerSigningKey,
                 ValidateIssuer = true,
                 ValidateAudience = true,
-                ValidateLifetime = true,
                 ValidateIssuerSigningKey = true,
                 RequireSignedTokens = true,
+                RequireExpirationTime = false,
+                ValidateLifetime = false
             };
 
             try
@@ -150,47 +161,101 @@ BVVGSvbFKDiaJqprAgMBAAE=
                 return null;
             }
         }
-        //Слить в один по string
-        public string? RefreshTokenCreation(IConfiguration conf, string userName)
+
+        public async Task<Token_ValidProperties> AccessTokenValidation(string? bearerKey)
         {
-            var rsaprivateKey = RSAPrivateKey("RT");
+            string bearer_key_without_prefix = bearerKey.Substring("Bearer ".Length);
 
-            using var rsa = RSA.Create();
-            rsa.ImportFromPem(rsaprivateKey);
+            var validation = await RSAJwtValidation(bearer_key_without_prefix);
 
-            var signingCredentials = new SigningCredentials(new RsaSecurityKey(rsa), SecurityAlgorithms.RsaSha512)
+            var expectedAlg = SecurityAlgorithms.RsaSha512;
+
+            if (validation == null)
             {
-                CryptoProviderFactory = new CryptoProviderFactory { CacheSignatureProviders = false }
-            };
-
-            var issuer = conf["Jwt:Issuer"];
-            var audience = conf["Jwt:Audience"];
-            var jwtTokenHandler = new JwtSecurityTokenHandler();
-
-            var tokenDescriptor = new SecurityTokenDescriptor
+                return new Token_ValidProperties() { token_error = new Token_ValidError { errorLog = "unauthorized" } };
+            }
+            else
             {
-                Subject = new ClaimsIdentity(new[]
-                    {
-                            new Claim("Username", userName),
-                            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-                    }),
-                // the life span of the token needs to be shorter and utilise refresh token to keep the user signedin
-                // but since this is a demo app we can extend it to fit our current need
-                Expires = DateTime.UtcNow.AddMinutes(5),
-                Audience = audience,
-                Issuer = issuer,
-                // here we are adding the encryption alogorithim information which will be used to decrypt our token
-                SigningCredentials = signingCredentials
-            };
+                if (validation.Header?.Alg == null || validation.Header?.Alg != expectedAlg)
+                {
+                    return new Token_ValidProperties() { token_error = new Token_ValidError { errorLog = "unexpected_alg" } };
+                }
 
-            var token = jwtTokenHandler.CreateToken(tokenDescriptor);
+                string userName = "";
 
-            var jwtToken = jwtTokenHandler.WriteToken(token);
+                foreach (var claim in validation.Claims)
+                {
+                    if (claim.Type == "Username")
+                        userName = claim.Value;
+                }
 
-            return jwtToken;
+                if (_cache.CheckExistKeysStorage(userName, "accessTokens"))
+                {
+                    if (_cache.GetKeyFromStorage(userName, "accessTokens") != bearer_key_without_prefix)
+                        return new Token_ValidProperties() { token_error = new Token_ValidError { errorLog = "unauthorized" } };
+                }
+                else
+                    return new Token_ValidProperties() { token_error = new Token_ValidError { errorLog = "unauthorized" } };
+                
+                Token_ValidSuccess valid_success = new Token_ValidSuccess
+                {
+                    userName = userName,
+                    bearerWithoutPrefix = bearer_key_without_prefix
+                };
+
+                return new Token_ValidProperties() { 
+                    token_success = valid_success
+                };
+            }
         }
 
-        public string? JwtTokenCreation(IConfiguration conf, string userName)
+        public async Task<Token_ValidProperties> RefreshTokenValidation(string? bearerKey)
+        {
+            var validation = await RSARefreshTokenValidation(bearerKey);
+
+            var expectedAlg = SecurityAlgorithms.RsaSha512;
+
+            if (validation == null)
+            {
+                return new Token_ValidProperties() { token_error = new Token_ValidError { errorLog = "unauthorized" } };
+            }
+            else
+            {
+                if (validation.Header?.Alg == null || validation.Header?.Alg != expectedAlg)
+                {
+                    return new Token_ValidProperties() { token_error = new Token_ValidError { errorLog = "unexpected_alg" } };
+                }
+
+                string userName = "";
+
+                foreach (var claim in validation.Claims)
+                {
+                    if (claim.Type == "Username")
+                        userName = claim.Value;
+                }
+
+                if (_cache.CheckExistKeysStorage(userName, "refreshTokens"))
+                {
+                    if (_cache.GetKeyFromStorage(userName, "refreshTokens") != bearerKey)
+                        return new Token_ValidProperties() { token_error = new Token_ValidError { errorLog = "unauthorized" } };
+                }
+                else
+                    return new Token_ValidProperties() { token_error = new Token_ValidError { errorLog = "unauthorized" } };
+
+                Token_ValidSuccess valid_success = new Token_ValidSuccess
+                {
+                    userName = userName,
+                    bearerWithoutPrefix = bearerKey
+                };
+
+                return new Token_ValidProperties()
+                {
+                    token_success = valid_success
+                };
+            }
+        }
+
+        public string JwtTokenCreation(string userName)
         {
 
             var rsaprivateKey = RSAPrivateKey("JWT");
@@ -203,24 +268,21 @@ BVVGSvbFKDiaJqprAgMBAAE=
                 CryptoProviderFactory = new CryptoProviderFactory { CacheSignatureProviders = false }
             };
 
-            var issuer = conf["Jwt:Issuer"];
-            var audience = conf["Jwt:Audience"];
+            var issuer = _configuration["Jwt:Issuer"];
+            var audience = _configuration["Jwt:Audience"];
             var jwtTokenHandler = new JwtSecurityTokenHandler();
 
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(new[]
-                    {
-                            new Claim("Username", userName),
-                            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-                    }),
-                // the life span of the token needs to be shorter and utilise refresh token to keep the user signedin
-                // but since this is a demo app we can extend it to fit our current need
-                Expires = DateTime.UtcNow.AddMinutes(2),
+                {
+                    new Claim("Username", userName),
+                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+                }),
                 Audience = audience,
                 Issuer = issuer,
-                // here we are adding the encryption alogorithim information which will be used to decrypt our token
-                SigningCredentials = signingCredentials
+                SigningCredentials = signingCredentials,
+                
             };
 
             var token = jwtTokenHandler.CreateToken(tokenDescriptor);
@@ -230,5 +292,39 @@ BVVGSvbFKDiaJqprAgMBAAE=
             return jwtToken;
         }
 
+        public string RefreshTokenCreation(string userName)
+        {
+            var rsaprivateKey = RSAPrivateKey("RT");
+
+            using var rsa = RSA.Create();
+            rsa.ImportFromPem(rsaprivateKey);
+
+            var signingCredentials = new SigningCredentials(new RsaSecurityKey(rsa), SecurityAlgorithms.RsaSha512)
+            {
+                CryptoProviderFactory = new CryptoProviderFactory { CacheSignatureProviders = false }
+            };
+
+            var issuer = _configuration["Jwt:Issuer"];
+            var audience = _configuration["Jwt:Audience"];
+            var jwtTokenHandler = new JwtSecurityTokenHandler();
+
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(new[]
+                {
+                    new Claim("Username", userName),
+                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+                }),
+                Audience = audience,
+                Issuer = issuer,
+                SigningCredentials = signingCredentials
+            };
+
+            var token = jwtTokenHandler.CreateToken(tokenDescriptor);
+
+            var jwtToken = jwtTokenHandler.WriteToken(token);
+
+            return jwtToken;
+        }
     }
 }

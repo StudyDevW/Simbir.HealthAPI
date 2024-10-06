@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Simbir.Health.AccountAPI.Model;
@@ -56,10 +57,37 @@ namespace Simbir.Health.AccountAPI
 
             builder.Services.AddAuthentication(o =>
             {
-                o.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                o.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-                o.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-            }).AddJwtBearer();
+                o.DefaultAuthenticateScheme = "Asymmetric";
+                o.DefaultChallengeScheme = "Asymmetric";
+                o.DefaultScheme = "Asymmetric";
+
+            }).AddJwtBearer("Asymmetric", o =>
+            {
+                var rsa = RSA.Create();
+
+                var jwtSdk = new JwtSDK();
+
+                rsa.ImportFromPem(jwtSdk.RSAPublicKey("JWT"));
+
+                o.IncludeErrorDetails = true;
+                o.RequireHttpsMetadata = false;
+                o.SaveToken = false;
+
+                TokenValidationParameters tk_valid = new TokenValidationParameters
+                {
+                    ValidIssuer = builder.Configuration["Jwt:Issuer"],
+                    ValidAudience = builder.Configuration["Jwt:Audience"],
+                    IssuerSigningKey = new RsaSecurityKey(rsa),
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateIssuerSigningKey = true,
+                    RequireSignedTokens = true,
+                    ValidateLifetime = false,
+                    RequireExpirationTime = false //#
+                };
+
+                o.TokenValidationParameters = tk_valid;
+            });
 
 
             builder.Services.AddDbContext<DataContext>(options =>
@@ -70,6 +98,8 @@ namespace Simbir.Health.AccountAPI
             builder.Services.AddSingleton<IDatabaseService, DatabaseSDK>();
 
             builder.Services.AddSingleton<IJwtService, JwtSDK>();
+
+            builder.Services.AddSingleton<ICacheService, CacheSDK>();
 
             //var db = new DataContext();
 
