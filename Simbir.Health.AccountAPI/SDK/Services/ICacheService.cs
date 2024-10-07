@@ -8,12 +8,12 @@
 
         public object RemoveData(string key);
 
-        public void WriteKeyInStorage(string userName, string type, string key, DateTime extime);
+        public void WriteKeyInStorage(int id_user, string type, string key, DateTime extime);
 
-        public void DeleteKeyFromStorage(string userName, string type);
+        public void DeleteKeyFromStorage(int id_user, string type);
 
-        public bool CheckExistKeysStorage(string userName, string type);
+        public bool CheckExistKeysStorage(int id_user, string type);
 
-        public string? GetKeyFromStorage(string userName, string type);
+        public string? GetKeyFromStorage(int id_user, string type);
     }
 }

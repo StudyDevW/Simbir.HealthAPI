@@ -1,11 +1,13 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using Simbir.Health.AccountAPI.Model.Database.DTO.CheckUsers;
 using Simbir.Health.AccountAPI.Model.Database.DTO.ValidTokens;
 using Simbir.Health.AccountAPI.SDK.Services;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
+using System.Text.Json;
 
 namespace Simbir.Health.AccountAPI.SDK
 {
@@ -117,12 +119,13 @@ BVVGSvbFKDiaJqprAgMBAAE=
 
             try
             {
-                var principal = new JwtSecurityTokenHandler()
-                    .ValidateToken(token, tk_valid, out var rawValidatedToken);
+                var tokenHandler = new JwtSecurityTokenHandler();
+
+                tokenHandler.ValidateToken(token, tk_valid, out var rawValidatedToken);
 
                 return (JwtSecurityToken)rawValidatedToken;
             }
-            catch (SecurityTokenValidationException)
+            catch (Exception e)
             {
                 return null;
             }
@@ -151,12 +154,13 @@ BVVGSvbFKDiaJqprAgMBAAE=
 
             try
             {
-                var principal = new JwtSecurityTokenHandler()
-                    .ValidateToken(token, tk_valid, out var rawValidatedToken);
+                var tokenHandler = new JwtSecurityTokenHandler();
+
+                tokenHandler.ValidateToken(token, tk_valid, out var rawValidatedToken);
 
                 return (JwtSecurityToken)rawValidatedToken;
             }
-            catch (SecurityTokenValidationException)
+            catch (Exception e)
             {
                 return null;
             }
@@ -164,6 +168,11 @@ BVVGSvbFKDiaJqprAgMBAAE=
 
         public async Task<Token_ValidProperties> AccessTokenValidation(string? bearerKey)
         {
+            //if (!bearerKey.Contains("Bearer "))
+            //{
+            //    return new Token_ValidProperties() { token_error = new Token_ValidError { errorLog = "unexpected_format" } };
+            //}
+
             string bearer_key_without_prefix = bearerKey.Substring("Bearer ".Length);
 
             var validation = await RSAJwtValidation(bearer_key_without_prefix);
@@ -182,24 +191,41 @@ BVVGSvbFKDiaJqprAgMBAAE=
                 }
 
                 string userName = "";
+                int userId = -1;
+                List<string> userRoles = new List<string>();
 
                 foreach (var claim in validation.Claims)
                 {
                     if (claim.Type == "Username")
                         userName = claim.Value;
+
+                    if (claim.Type == "Id")
+                        userId = int.Parse(claim.Value);
+
+                    if (claim.Type == "Roles")
+                        userRoles = JsonSerializer.Deserialize<List<string>>(claim.Value);
                 }
 
-                if (_cache.CheckExistKeysStorage(userName, "accessTokens"))
+                if (userId == -1)
+                    return new Token_ValidProperties() { token_error = new Token_ValidError { errorLog = "unauthorized" } };
+
+                if (userRoles == null)
+                    return new Token_ValidProperties() { token_error = new Token_ValidError { errorLog = "unauthorized" } };
+
+                if (_cache.CheckExistKeysStorage(userId, "accessTokens"))
                 {
-                    if (_cache.GetKeyFromStorage(userName, "accessTokens") != bearer_key_without_prefix)
+                    //Проверка на то, подменен ли ключ или нет!
+                    if (_cache.GetKeyFromStorage(userId, "accessTokens") != bearer_key_without_prefix)
                         return new Token_ValidProperties() { token_error = new Token_ValidError { errorLog = "unauthorized" } };
                 }
                 else
                     return new Token_ValidProperties() { token_error = new Token_ValidError { errorLog = "unauthorized" } };
-                
+
                 Token_ValidSuccess valid_success = new Token_ValidSuccess
                 {
+                    Id = userId,
                     userName = userName,
+                    userRoles = userRoles,
                     bearerWithoutPrefix = bearer_key_without_prefix
                 };
 
@@ -227,16 +253,32 @@ BVVGSvbFKDiaJqprAgMBAAE=
                 }
 
                 string userName = "";
+                int userId = -1; 
+                List<string> userRoles = new List<string>();
 
                 foreach (var claim in validation.Claims)
                 {
                     if (claim.Type == "Username")
                         userName = claim.Value;
+
+                    if (claim.Type == "Id")
+                        userId = int.Parse(claim.Value);
+
+                    if (claim.Type == "Roles")
+                        userRoles = JsonSerializer.Deserialize<List<string>>(claim.Value);
                 }
 
-                if (_cache.CheckExistKeysStorage(userName, "refreshTokens"))
+                if (userId == -1)
+                    return new Token_ValidProperties() { token_error = new Token_ValidError { errorLog = "unauthorized" } };
+
+                if (userRoles == null)
+                    return new Token_ValidProperties() { token_error = new Token_ValidError { errorLog = "unauthorized" } };
+                
+
+                if (_cache.CheckExistKeysStorage(userId, "refreshTokens"))
                 {
-                    if (_cache.GetKeyFromStorage(userName, "refreshTokens") != bearerKey)
+                    //Проверка на то, подменен ли ключ или нет!
+                    if (_cache.GetKeyFromStorage(userId, "refreshTokens") != bearerKey)
                         return new Token_ValidProperties() { token_error = new Token_ValidError { errorLog = "unauthorized" } };
                 }
                 else
@@ -244,7 +286,9 @@ BVVGSvbFKDiaJqprAgMBAAE=
 
                 Token_ValidSuccess valid_success = new Token_ValidSuccess
                 {
+                    Id = userId,
                     userName = userName,
+                    userRoles = userRoles,
                     bearerWithoutPrefix = bearerKey
                 };
 
@@ -255,8 +299,13 @@ BVVGSvbFKDiaJqprAgMBAAE=
             }
         }
 
-        public string JwtTokenCreation(string userName)
+        public string JwtTokenCreation(Auth_CheckSuccess dtoObj)
         {
+            if (dtoObj == null)
+                return string.Empty;
+
+            if (dtoObj.username == null)
+                return string.Empty;
 
             var rsaprivateKey = RSAPrivateKey("JWT");
 
@@ -272,11 +321,15 @@ BVVGSvbFKDiaJqprAgMBAAE=
             var audience = _configuration["Jwt:Audience"];
             var jwtTokenHandler = new JwtSecurityTokenHandler();
 
+            var serializer_roles = JsonSerializer.Serialize(dtoObj.roles);
+
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(new[]
                 {
-                    new Claim("Username", userName),
+                    new Claim("Id", dtoObj.Id.ToString()),
+                    new Claim("Username", dtoObj.username),
+                    new Claim("Roles", serializer_roles),
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
                 }),
                 Audience = audience,
@@ -292,8 +345,14 @@ BVVGSvbFKDiaJqprAgMBAAE=
             return jwtToken;
         }
 
-        public string RefreshTokenCreation(string userName)
+        public string RefreshTokenCreation(Auth_CheckSuccess dtoObj)
         {
+            if (dtoObj == null)
+                return string.Empty;
+
+            if (dtoObj.username == null)
+                return string.Empty;
+
             var rsaprivateKey = RSAPrivateKey("RT");
 
             using var rsa = RSA.Create();
@@ -308,11 +367,15 @@ BVVGSvbFKDiaJqprAgMBAAE=
             var audience = _configuration["Jwt:Audience"];
             var jwtTokenHandler = new JwtSecurityTokenHandler();
 
+            var serializer_roles = JsonSerializer.Serialize(dtoObj.roles);
+
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(new[]
                 {
-                    new Claim("Username", userName),
+                    new Claim("Id", dtoObj.Id.ToString()),
+                    new Claim("Username", dtoObj.username),
+                    new Claim("Roles", serializer_roles),
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
                 }),
                 Audience = audience,

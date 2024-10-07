@@ -4,6 +4,7 @@ using Microsoft.IdentityModel.Tokens;
 using Simbir.Health.AccountAPI.Model;
 using Simbir.Health.AccountAPI.Model.Database.DBO;
 using Simbir.Health.AccountAPI.Model.Database.DTO;
+using Simbir.Health.AccountAPI.Model.Database.DTO.CheckUsers;
 using Simbir.Health.AccountAPI.SDK.Services;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Model;
 
@@ -42,27 +43,28 @@ namespace Simbir.Health.AccountAPI.Controllers
             if (dtoObj.username == null)
                 return BadRequest();
 
-            if (_database.CheckUser(dtoObj))
+            var check = _database.CheckUser(dtoObj);
+
+            if (check.CheckHasSuccess())
             {
+                var accessToken = _jwt.JwtTokenCreation(check.check_success);
+                var refreshToken = _jwt.RefreshTokenCreation(check.check_success);
 
-                var accessToken = _jwt.JwtTokenCreation(dtoObj.username);
-                var refreshToken = _jwt.RefreshTokenCreation(dtoObj.username);
+                if (_cache.CheckExistKeysStorage(check.check_success.Id, "accessTokens"))
+                    _cache.DeleteKeyFromStorage(check.check_success.Id, "accessTokens");
 
-                if (_cache.CheckExistKeysStorage(dtoObj.username, "accessTokens"))
-                    _cache.DeleteKeyFromStorage(dtoObj.username, "accessTokens");
-
-                if (_cache.CheckExistKeysStorage(dtoObj.username, "refreshTokens"))
-                    _cache.DeleteKeyFromStorage(dtoObj.username, "refreshTokens");
+                if (_cache.CheckExistKeysStorage(check.check_success.Id, "refreshTokens"))
+                    _cache.DeleteKeyFromStorage(check.check_success.Id, "refreshTokens");
                 
 
-                _cache.WriteKeyInStorage(dtoObj.username, "accessTokens", accessToken, DateTime.UtcNow.AddMinutes(2));
-                _cache.WriteKeyInStorage(dtoObj.username, "refreshTokens", refreshToken, DateTime.UtcNow.AddMinutes(7));
+                _cache.WriteKeyInStorage(check.check_success.Id, "accessTokens", accessToken, DateTime.UtcNow.AddMinutes(2));
+                _cache.WriteKeyInStorage(check.check_success.Id, "refreshTokens", refreshToken, DateTime.UtcNow.AddMinutes(7));
 
 
                 Auth_PairTokens pair_tokens = new Auth_PairTokens()
                 {
-                    accessToken = _cache.GetKeyFromStorage(dtoObj.username, "accessTokens"),
-                    refreshToken = _cache.GetKeyFromStorage(dtoObj.username, "refreshTokens")
+                    accessToken = _cache.GetKeyFromStorage(check.check_success.Id, "accessTokens"),
+                    refreshToken = _cache.GetKeyFromStorage(check.check_success.Id, "refreshTokens")
                 };
 
                 return Ok(pair_tokens);
@@ -74,6 +76,12 @@ namespace Simbir.Health.AccountAPI.Controllers
         [HttpGet("Validate")]
         public async Task<IActionResult> ValidateToken([FromHeader(Name = "accessToken")] string? token)
         {
+            if (token != null)
+            {
+                if (token.Contains("Bearer"))
+                    return BadRequest("accessToken in this method must not contain word [Bearer]");
+            }
+
             var validation = await _jwt.AccessTokenValidation("Bearer " + token);
            
             if (validation.TokenHasError())
@@ -82,7 +90,7 @@ namespace Simbir.Health.AccountAPI.Controllers
             }
             else if (validation.TokenHasSuccess())
             {
-                return Ok($"Token for {validation.token_success.userName} is valid");
+                return Ok($"Token for id_user: {validation.token_success.Id} is valid");
             }
 
             return BadRequest();
@@ -102,9 +110,10 @@ namespace Simbir.Health.AccountAPI.Controllers
             }
             else if (validation.TokenHasSuccess())
             {
-                _cache.DeleteKeyFromStorage(validation.token_success.userName, "accessTokens");
 
-                _cache.DeleteKeyFromStorage(validation.token_success.userName, "refreshTokens");
+                _cache.DeleteKeyFromStorage(validation.token_success.Id, "accessTokens");
+
+                _cache.DeleteKeyFromStorage(validation.token_success.Id, "refreshTokens");
 
                 return Ok($"{validation.token_success.userName} is logout");
             }
@@ -123,24 +132,31 @@ namespace Simbir.Health.AccountAPI.Controllers
             }
             else if (validation.TokenHasSuccess())
             {
-                var accessToken = _jwt.JwtTokenCreation(validation.token_success.userName);
-                var refreshToken = _jwt.RefreshTokenCreation(validation.token_success.userName);
+                Auth_CheckSuccess authsuccess = new Auth_CheckSuccess()
+                {
+                    Id = validation.token_success.Id,
+                    roles = validation.token_success.userRoles,
+                    username = validation.token_success.userName
+                };
 
-                if (_cache.CheckExistKeysStorage(validation.token_success.userName, "accessTokens"))
-                    _cache.DeleteKeyFromStorage(validation.token_success.userName, "accessTokens");
+                var accessToken = _jwt.JwtTokenCreation(authsuccess);
+                var refreshToken = _jwt.RefreshTokenCreation(authsuccess);
 
-                if (_cache.CheckExistKeysStorage(validation.token_success.userName, "refreshTokens"))
-                    _cache.DeleteKeyFromStorage(validation.token_success.userName, "refreshTokens");
+                if (_cache.CheckExistKeysStorage(authsuccess.Id, "accessTokens"))
+                    _cache.DeleteKeyFromStorage(authsuccess.Id, "accessTokens");
+
+                if (_cache.CheckExistKeysStorage(authsuccess.Id, "refreshTokens"))
+                    _cache.DeleteKeyFromStorage(authsuccess.Id, "refreshTokens");
 
 
-                _cache.WriteKeyInStorage(validation.token_success.userName, "accessTokens", accessToken, DateTime.UtcNow.AddMinutes(2));
-                _cache.WriteKeyInStorage(validation.token_success.userName, "refreshTokens", refreshToken, DateTime.UtcNow.AddDays(7));
+                _cache.WriteKeyInStorage(authsuccess.Id, "accessTokens", accessToken, DateTime.UtcNow.AddMinutes(2));
+                _cache.WriteKeyInStorage(authsuccess.Id, "refreshTokens", refreshToken, DateTime.UtcNow.AddDays(7));
 
 
                 Auth_PairTokens pair_tokens = new Auth_PairTokens()
                 {
-                    accessToken = _cache.GetKeyFromStorage(validation.token_success.userName, "accessTokens"),
-                    refreshToken = _cache.GetKeyFromStorage(validation.token_success.userName, "refreshTokens")
+                    accessToken = _cache.GetKeyFromStorage(authsuccess.Id, "accessTokens"),
+                    refreshToken = _cache.GetKeyFromStorage(authsuccess.Id, "refreshTokens")
                 };
 
                 return Ok(pair_tokens);
@@ -148,5 +164,6 @@ namespace Simbir.Health.AccountAPI.Controllers
 
             return Unauthorized();
         }
+
     }
 }

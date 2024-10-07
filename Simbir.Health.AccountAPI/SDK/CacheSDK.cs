@@ -50,19 +50,19 @@ namespace Simbir.Health.AccountAPI.SDK
             return _cacheDb.StringSet(key, JsonSerializer.Serialize(value), expiryTime);
         }
 
-        public void WriteKeyInStorage(string userName, string type, string key, DateTime extime)
+        public void WriteKeyInStorage(int id_user, string type, string key, DateTime extime)
         {
-            SetData($"{type}_storage_{userName}", key, extime);
+            SetData($"{type}_storage_{id_user}", key, extime);
         }
 
-        public void DeleteKeyFromStorage(string userName, string type)
+        public void DeleteKeyFromStorage(int id_user, string type)
         {
-            RemoveData($"{type}_storage_{userName}");
+            RemoveData($"{type}_storage_{id_user}");
         } 
 
-        public bool CheckExistKeysStorage(string userName, string type)
+        public bool CheckExistKeysStorage(int id_user, string type)
         {
-            var cache_data = GetData<string>($"{type}_storage_{userName}");
+            var cache_data = GetData<string>($"{type}_storage_{id_user}");
 
             if (cache_data != null)
                 return true;
@@ -70,9 +70,9 @@ namespace Simbir.Health.AccountAPI.SDK
             return false;
         }
 
-        public string? GetKeyFromStorage(string userName, string type)
+        public string? GetKeyFromStorage(int id_user, string type)
         {
-            var cache_data = GetData<string>($"{type}_storage_{userName}");
+            var cache_data = GetData<string>($"{type}_storage_{id_user}");
 
             return cache_data;
         }

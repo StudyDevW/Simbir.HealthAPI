@@ -2,6 +2,7 @@
 using Simbir.Health.AccountAPI.Model;
 using Simbir.Health.AccountAPI.Model.Database.DBO;
 using Simbir.Health.AccountAPI.Model.Database.DTO;
+using Simbir.Health.AccountAPI.Model.Database.DTO.CheckUsers;
 using Simbir.Health.AccountAPI.SDK.Services;
 
 namespace Simbir.Health.AccountAPI.SDK
@@ -46,12 +47,12 @@ namespace Simbir.Health.AccountAPI.SDK
             return true;
         }
 
-        public bool CheckUser(Auth_SignIn dto)
+        public Auth_CheckInfo CheckUser(Auth_SignIn dto)
         {
             if (dto == null)
             {
                 _logger.LogError("CheckUser: dto==null");
-                return false;
+                return new Auth_CheckInfo() { check_error = new Auth_CheckError { errorLog = "input_incorrect" } };
             }
 
             using (DataContext db = new DataContext())
@@ -60,12 +61,39 @@ namespace Simbir.Health.AccountAPI.SDK
                 {
                     if (obj.username == dto.username &&
                         obj.password == dto.password)
-                        return true;
+                        return new Auth_CheckInfo() {
+                            check_success = new Auth_CheckSuccess
+                            {
+                                Id = obj.id,
+                                username = obj.username,
+                                roles = obj.roles
+                            } 
+                        };
                 }
             }
 
             _logger.LogError("CheckUser: Неправильное имя пользователя или пароль!");
-            return false;
+            return new Auth_CheckInfo() { check_error = new Auth_CheckError { errorLog = "username/password_incorrect" } };
+        }
+        
+        public Accounts_Info InfoAccounts(int id)
+        {
+
+            using (DataContext db = new DataContext())
+            {
+                foreach (var obj in db.userTableObj)
+                {
+                    if (obj.id == id)
+                        return new Accounts_Info()
+                        {
+                            firstName = obj.firstName,
+                            lastName = obj.lastName,
+                            roles = obj.roles
+                        };
+                }
+            }
+
+            return new Accounts_Info();
         }
     }
 }
