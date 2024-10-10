@@ -12,7 +12,7 @@ namespace Simbir.Health.AccountAPI.SDK.Services
 
        // public Task<JwtSecurityToken> RSAJwtValidation(string? token);
 
-        public Task<Token_ValidProperties> AccessTokenValidation(string? bearerKey);
+        public Task<Token_ValidProperties> AccessTokenValidation(string? bearerKey, string checkrole = "none");
 
         public Task<Token_ValidProperties> RefreshTokenValidation(string? bearerKey);
     }

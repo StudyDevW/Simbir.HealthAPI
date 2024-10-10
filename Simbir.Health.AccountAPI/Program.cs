@@ -27,7 +27,7 @@ namespace Simbir.Health.AccountAPI
                 Scheme = "Bearer",
                 BearerFormat = "JWT",
                 In = ParameterLocation.Header,
-                Description = "JSON Web Token based security",
+                Description = "Авторизация по accessToken'у",
             };
 
             var securityReq = new OpenApiSecurityRequirement()
@@ -53,6 +53,23 @@ namespace Simbir.Health.AccountAPI
             {
                 o.AddSecurityDefinition("Bearer", securityScheme);
                 o.AddSecurityRequirement(securityReq);
+
+                o.SwaggerDoc("v1", new OpenApiInfo
+                {
+                    Version = "v1",
+                    Title = "Accounts API",
+                    Description = "API на ASP.NET, Олимпиада volga-it",
+                    Contact = new OpenApiContact
+                    {
+                        Name = "Антон (Study) - Developer",
+                        Url = new Uri("https://github.com/StudyDevW")
+                    }
+                });
+
+                var basePath = AppContext.BaseDirectory;
+
+                var xmlPath = Path.Combine(basePath, "apidocs.xml");
+                o.IncludeXmlComments(xmlPath);
             });
 
             builder.Services.AddAuthentication(o =>

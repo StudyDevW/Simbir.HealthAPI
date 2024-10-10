@@ -166,12 +166,13 @@ BVVGSvbFKDiaJqprAgMBAAE=
             }
         }
 
-        public async Task<Token_ValidProperties> AccessTokenValidation(string? bearerKey)
+        public async Task<Token_ValidProperties> AccessTokenValidation(string? bearerKey, string checkrole)
         {
-            //if (!bearerKey.Contains("Bearer "))
-            //{
-            //    return new Token_ValidProperties() { token_error = new Token_ValidError { errorLog = "unexpected_format" } };
-            //}
+            if (bearerKey == null)
+                return new Token_ValidProperties() { token_error = new Token_ValidError { errorLog = "token_empty" } };
+
+            if (!bearerKey.Contains("Bearer "))
+                return new Token_ValidProperties() { token_error = new Token_ValidError { errorLog = "format_unknown" } };
 
             string bearer_key_without_prefix = bearerKey.Substring("Bearer ".Length);
 
@@ -220,6 +221,12 @@ BVVGSvbFKDiaJqprAgMBAAE=
                 }
                 else
                     return new Token_ValidProperties() { token_error = new Token_ValidError { errorLog = "unauthorized" } };
+
+                if (checkrole != "none")
+                {
+                    if (!userRoles.Contains(checkrole))
+                        return new Token_ValidProperties() { token_error = new Token_ValidError { errorLog = "unauthorized_role" } };
+                }
 
                 Token_ValidSuccess valid_success = new Token_ValidSuccess
                 {

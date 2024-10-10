@@ -2,6 +2,8 @@
 {
     public class Accounts_Info
     {
+        public int id {  get; set; }
+
         public string? lastName {  get; set; }
 
         public string? firstName { get; set; }

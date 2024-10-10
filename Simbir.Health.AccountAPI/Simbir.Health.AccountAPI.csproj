@@ -7,6 +7,8 @@
     <UserSecretsId>963d3e8d-aa5e-4b64-bba7-a31139ee7bdb</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <DockerComposeProjectPath>..\docker-compose.dcproj</DockerComposeProjectPath>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
+    <DocumentationFile>C:\Users\qwert\source\repos\Simbir.HealthAPI\Simbir.Health.AccountAPI\bin\Debug\net6.0\apidocs.xml</DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
