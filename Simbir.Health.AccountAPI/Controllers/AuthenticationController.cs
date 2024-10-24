@@ -112,7 +112,7 @@ namespace Simbir.Health.AccountAPI.Controllers
                 return Ok(pair_tokens);
             }
 
-            return BadRequest();
+            return NotFound();
         }
 
         /// <summary>
@@ -154,7 +154,7 @@ namespace Simbir.Health.AccountAPI.Controllers
             }
             else if (validation.TokenHasSuccess())
             {
-                return Ok($"Token for id_user: {validation.token_success.Id} is valid");
+                return Ok("valid");
             }
 
             return BadRequest();

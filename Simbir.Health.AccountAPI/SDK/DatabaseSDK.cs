@@ -143,6 +143,8 @@ namespace Simbir.Health.AccountAPI.SDK
                         roles = filtered_query.roles
                     };
                 }
+
+
             }
 
             return new Accounts_Info();
@@ -272,19 +274,39 @@ namespace Simbir.Health.AccountAPI.SDK
 
             using (DataContext db = new DataContext())
             {
-                var filtered_query = db.userTableObj.Skip(_from).Take(_count);
-
-                foreach (var account in filtered_query)
+                if (_count != 0)
                 {
-                    Accounts_Info accountInfo = new Accounts_Info()
-                    {
-                        id = account.id,
-                        firstName = account.firstName,
-                        lastName = account.lastName,
-                        roles = account.roles
-                    };
+                    var filtered_query = db.userTableObj.Skip(_from).Take(_count);
 
-                    accounts.Add(accountInfo);
+                    foreach (var account in filtered_query)
+                    {
+                        Accounts_Info accountInfo = new Accounts_Info()
+                        {
+                            id = account.id,
+                            firstName = account.firstName,
+                            lastName = account.lastName,
+                            roles = account.roles
+                        };
+
+                        accounts.Add(accountInfo);
+                    }
+                }
+                else
+                {
+                    var filtered_query = db.userTableObj.Skip(_from);
+
+                    foreach (var account in filtered_query)
+                    {
+                        Accounts_Info accountInfo = new Accounts_Info()
+                        {
+                            id = account.id,
+                            firstName = account.firstName,
+                            lastName = account.lastName,
+                            roles = account.roles
+                        };
+
+                        accounts.Add(accountInfo);
+                    }
                 }
             }
 
@@ -303,21 +325,42 @@ namespace Simbir.Health.AccountAPI.SDK
 
             using (DataContext db = new DataContext())
             {
-                var filtered_query = db.userTableObj.Where(o => o.roles.Contains("Doctor") && (o.firstName.Contains(nameFilter) || o.lastName.Contains(nameFilter)))
-                    .Skip(_from)
-                    .Take(_count);
-
-                foreach (var account in filtered_query)
+                if (_count != 0)
                 {
-                    Accounts_Info accountInfo = new Accounts_Info()
-                    {
-                        id = account.id,
-                        firstName = account.firstName,
-                        lastName = account.lastName,
-                        roles = account.roles
-                    };
+                    var filtered_query = db.userTableObj.Where(o => o.roles.Contains("Doctor") && (o.firstName.Contains(nameFilter) || o.lastName.Contains(nameFilter)))
+                        .Skip(_from)
+                        .Take(_count);
 
-                    accounts.Add(accountInfo);
+                    foreach (var account in filtered_query)
+                    {
+                        Accounts_Info accountInfo = new Accounts_Info()
+                        {
+                            id = account.id,
+                            firstName = account.firstName,
+                            lastName = account.lastName,
+                            roles = account.roles
+                        };
+
+                        accounts.Add(accountInfo);
+                    }
+                }
+                else
+                {
+                    var filtered_query = db.userTableObj.Where(o => o.roles.Contains("Doctor") && (o.firstName.Contains(nameFilter) || o.lastName.Contains(nameFilter)))
+                       .Skip(_from);
+
+                    foreach (var account in filtered_query)
+                    {
+                        Accounts_Info accountInfo = new Accounts_Info()
+                        {
+                            id = account.id,
+                            firstName = account.firstName,
+                            lastName = account.lastName,
+                            roles = account.roles
+                        };
+
+                        accounts.Add(accountInfo);
+                    }
                 }
             }
 

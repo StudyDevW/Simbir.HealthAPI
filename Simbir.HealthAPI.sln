@@ -5,7 +5,7 @@ VisualStudioVersion = 17.7.34031.279
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Simbir.Health.AccountAPI", "Simbir.Health.AccountAPI\Simbir.Health.AccountAPI.csproj", "{B7A383AC-94AB-4125-8453-9BCE4F17B7B0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Simbir.Health.HospitalAPI", "Simbir.Health.HospitalAPI\Simbir.Health.HospitalAPI.csproj", "{B78FFEB3-EFA5-45F7-9525-3D1AF8C8812D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Simbir.Health.HospitalAPI", "Simbir.Health.HospitalAPI\Simbir.Health.HospitalAPI.csproj", "{B78FFEB3-EFA5-45F7-9525-3D1AF8C8812D}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Simbir.Health.TimetableAPI", "Simbir.Health.TimetableAPI\Simbir.Health.TimetableAPI.csproj", "{18161603-4971-4201-9D73-4996D23F4FEA}"
 EndProject

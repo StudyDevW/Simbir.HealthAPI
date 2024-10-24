@@ -45,8 +45,6 @@ namespace Simbir.Health.AccountAPI
                 }
             };
 
-
-
             builder.Services.AddEndpointsApiExplorer();
 
             builder.Services.AddSwaggerGen(o =>
@@ -118,17 +116,33 @@ namespace Simbir.Health.AccountAPI
 
             builder.Services.AddSingleton<ICacheService, CacheSDK>();
 
+            //builder.Services.AddSingleton<IRabbitMQService, RabbitSDK>();
+
+            //builder.Services.AddSingleton<IRabbitListenerService, RabbitListener>();
+
             //var db = new DataContext();
 
             //db.Database.Migrate();
 
             var app = builder.Build();
 
+            ////Достаю из DI
+            //using (var scope = app.Services.CreateScope())
+            //{
+            //    var rabbitListener = scope.ServiceProvider.GetRequiredService<IRabbitListenerService>();
+            //    rabbitListener.Listen();
+
+            //}
+
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
 
-                app.UseSwaggerUI();
+                app.UseSwaggerUI(c =>
+                {
+                    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Accounts API");
+                    c.RoutePrefix = "ui-swagger";
+                });
             }
 
             app.UseHttpsRedirection();

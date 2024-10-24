@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Simbir.Health.AccountAPI.SDK.Services;
+using System.ComponentModel.DataAnnotations;
 
 namespace Simbir.Health.AccountAPI.Controllers
 {
