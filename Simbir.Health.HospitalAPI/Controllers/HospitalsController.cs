@@ -8,7 +8,6 @@ using System.Net;
 using System.Net.Http;
 using System.Security.Claims;
 using System.Text.Json;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Model;
 
 namespace Simbir.Health.HospitalAPI.Controllers
 {
