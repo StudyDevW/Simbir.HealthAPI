@@ -46,7 +46,7 @@ namespace Simbir.Health.AccountAPI.Controllers
         /// 
         /// Информация по токенам:
         ///
-        ///     Срок действия AT(accessToken) - 2 минуты
+        ///     Срок действия AT(accessToken) - 10 минут
         /// 
         ///     Срок действия RT(refreshToken) - 7 дней
         /// 
@@ -90,7 +90,7 @@ namespace Simbir.Health.AccountAPI.Controllers
         ///     
         /// Информация по токенам:
         ///
-        ///     Срок действия AT(accessToken) - 2 минуты
+        ///     Срок действия AT(accessToken) - 10 минут
         /// 
         ///     Срок действия RT(refreshToken) - 7 дней
         /// 
@@ -107,7 +107,10 @@ namespace Simbir.Health.AccountAPI.Controllers
             try
             {
                 var info = _database.InfoAccountDoctor(id);
-                return Ok(info);
+                if (info != null)
+                    return Ok(info);
+                else
+                    return NotFound("doctor_not_found");
             }
             catch (Exception e)
             {

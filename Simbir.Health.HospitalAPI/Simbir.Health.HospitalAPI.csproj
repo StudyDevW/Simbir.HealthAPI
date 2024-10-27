@@ -6,6 +6,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>eb408dae-c484-4489-9bb8-e7a15077d2c2</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
+    <DocumentationFile>C:\Users\qwert\source\repos\Simbir.HealthAPI\Simbir.Health.AccountAPI\bin\Debug\net6.0\apidocsHospitals.xml</DocumentationFile>
   </PropertyGroup>
 
  <ItemGroup>

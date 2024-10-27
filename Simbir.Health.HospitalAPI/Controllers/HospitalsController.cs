@@ -16,16 +16,44 @@ namespace Simbir.Health.HospitalAPI.Controllers
     public class HospitalsController : ControllerBase
     {
         private readonly IDatabaseService _database;
-        private readonly ICacheService _cache;
         private readonly HttpClient _httpClient;
 
-        public HospitalsController(HttpClient httpClient, IDatabaseService database, ICacheService cache)
+        public HospitalsController(HttpClient httpClient, IDatabaseService database)
         {
             _httpClient = httpClient;
             _database = database;
-            _cache = cache;
         }
 
+        /// <summary>
+        /// Получение списка больниц
+        /// </summary>
+        /// <remarks>
+        /// Нужна авторизация по accessToken'у
+        /// 
+        /// Можно указать выборку
+        /// 
+        /// Пример выборки:
+        ///     
+        ///     from: начало выборки
+        ///     count: размер выборки
+        /// 
+        /// Пример авторизации:
+        /// 
+        ///     Bearer eyJhbGci...
+        /// 
+        /// 
+        /// Информация по токенам:
+        ///
+        ///     Срок действия AT(accessToken) - 10 минут
+        /// 
+        ///     Срок действия RT(refreshToken) - 7 дней
+        /// 
+        ///     Алгоритм шифрования токенов RS512
+        /// 
+        /// Проверить токен можно на сайте <a href="https://jwt.io/" target="_blank">jwt.io</a>
+        /// 
+        /// </remarks>
+        /// <returns></returns>
         [Authorize(AuthenticationSchemes = "Asymmetric")]
         [HttpGet]
         public async Task<IActionResult> GetHospitals([FromQuery] int from, [FromQuery] int count)
@@ -58,7 +86,32 @@ namespace Simbir.Health.HospitalAPI.Controllers
             }
         }
 
-        //Сделать
+        /// <summary>
+        /// Получение информации о больнице по Id
+        /// </summary>
+        /// <remarks>
+        /// Нужна авторизация по accessToken'у
+        /// 
+        /// 
+        /// Нужно ввести id больницы
+        /// 
+        /// Пример авторизации:
+        /// 
+        ///     Bearer eyJhbGci...
+        /// 
+        /// 
+        /// Информация по токенам:
+        ///
+        ///     Срок действия AT(accessToken) - 10 минут
+        /// 
+        ///     Срок действия RT(refreshToken) - 7 дней
+        /// 
+        ///     Алгоритм шифрования токенов RS512
+        /// 
+        /// Проверить токен можно на сайте <a href="https://jwt.io/" target="_blank">jwt.io</a>
+        /// 
+        /// </remarks>
+        /// <returns></returns>
         [Authorize(AuthenticationSchemes = "Asymmetric")]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetHospitalFromId(int id)
@@ -76,7 +129,7 @@ namespace Simbir.Health.HospitalAPI.Controllers
                 if (response.StatusCode == HttpStatusCode.Unauthorized)
                     return Unauthorized();
 
-                if (response.Content.ReadAsStringAsync().Result == "valid")
+                if (response.StatusCode == HttpStatusCode.OK)
                     return Ok(_database.GetHospitalFromId(id));
 
                 return BadRequest();
@@ -91,7 +144,32 @@ namespace Simbir.Health.HospitalAPI.Controllers
             }
         }
 
-        //Сделать
+        /// <summary>
+        /// Получение списка кабинетов больницы по Id
+        /// </summary>
+        /// <remarks>
+        /// Нужна авторизация по accessToken'у
+        /// 
+        /// 
+        /// Нужно ввести id больницы
+        /// 
+        /// Пример авторизации:
+        /// 
+        ///     Bearer eyJhbGci...
+        /// 
+        /// 
+        /// Информация по токенам:
+        ///
+        ///     Срок действия AT(accessToken) - 10 минут
+        /// 
+        ///     Срок действия RT(refreshToken) - 7 дней
+        /// 
+        ///     Алгоритм шифрования токенов RS512
+        /// 
+        /// Проверить токен можно на сайте <a href="https://jwt.io/" target="_blank">jwt.io</a>
+        /// 
+        /// </remarks>
+        /// <returns></returns>
         [Authorize(AuthenticationSchemes = "Asymmetric")]
         [HttpGet("{id}/Rooms")]
         public async Task<IActionResult> GetHospitalRoomsFromId(int id)
@@ -109,7 +187,7 @@ namespace Simbir.Health.HospitalAPI.Controllers
                 if (response.StatusCode == HttpStatusCode.Unauthorized)
                     return Unauthorized();
 
-                if (response.Content.ReadAsStringAsync().Result == "valid")
+                if (response.StatusCode == HttpStatusCode.OK)
                     return Ok(_database.GetHospitalRoomsFromId(id));
 
                 return BadRequest();
@@ -127,6 +205,44 @@ namespace Simbir.Health.HospitalAPI.Controllers
             return BadRequest();
         }
 
+        /// <summary>
+        /// Создание записи о новой больнице
+        /// </summary>
+        /// <remarks>
+        /// Нужна авторизация по accessToken'у
+        /// 
+        /// Доступ: <font color="red">Только администраторы</font>
+        /// 
+        /// Пример авторизации:
+        /// 
+        ///     Bearer eyJhbGci...
+        /// 
+        /// Пример данного запроса:
+        ///
+        ///     POST
+        ///     {
+        ///        "name": "Название больницы",
+        ///        "address": "Адрес больницы",
+        ///        "contactPhone": "Контактный телефон",        
+        ///        "rooms": [
+        ///          "Кабинет врача",
+        ///          "Кабинет другого врача",
+        ///          "..."
+        ///        ]
+        ///     }
+        ///     
+        /// Информация по токенам:
+        ///
+        ///     Срок действия AT(accessToken) - 10 минут
+        /// 
+        ///     Срок действия RT(refreshToken) - 7 дней
+        /// 
+        ///     Алгоритм шифрования токенов RS512
+        /// 
+        /// Проверить токен можно на сайте <a href="https://jwt.io/" target="_blank">jwt.io</a>
+        /// 
+        /// </remarks>
+        /// <returns></returns>
         [Authorize(AuthenticationSchemes = "Asymmetric")]
         [HttpPost]
         public async Task<IActionResult> CreateHospital([FromBody] Hospitals_Create dtoObj)
@@ -144,7 +260,7 @@ namespace Simbir.Health.HospitalAPI.Controllers
                 if (response.StatusCode == HttpStatusCode.Unauthorized)
                     return Unauthorized();
 
-                if (response.Content.ReadAsStringAsync().Result.Equals("valid"))
+                if (response.StatusCode == HttpStatusCode.OK)
                 {
                     List<string>? userRoles = new List<string>();
 
@@ -191,7 +307,47 @@ namespace Simbir.Health.HospitalAPI.Controllers
 
         }
 
-        //Сделать
+        /// <summary>
+        /// Изменение информации о больнице по Id
+        /// </summary>
+        /// <remarks>
+        /// Нужна авторизация по accessToken'у
+        /// 
+        /// Нужно ввести id больницы
+        /// 
+        /// Доступ: <font color="red">Только администраторы</font>
+        /// 
+        /// Пример авторизации:
+        /// 
+        ///     Bearer eyJhbGci...
+        /// 
+        /// Пример данного запроса:
+        ///
+        ///     PUT
+        ///     {
+        ///        "name": "Новое название больницы",
+        ///        "address": "Новый адрес больницы",
+        ///        "contactPhone": "Новый контактный телефон",        
+        ///        "rooms": [
+        ///          "Новый кабинет врача",
+        ///          "Новый кабинет другого врача",
+        ///          "..."
+        ///        ]
+        ///     }
+        ///     
+        /// Информация по токенам:
+        ///
+        ///     Срок действия AT(accessToken) - 10 минут
+        /// 
+        ///     Срок действия RT(refreshToken) - 7 дней
+        /// 
+        ///     Алгоритм шифрования токенов RS512
+        /// 
+        /// Проверить токен можно на сайте <a href="https://jwt.io/" target="_blank">jwt.io</a>
+        /// 
+        /// </remarks>
+        /// <returns></returns>
+
         [Authorize(AuthenticationSchemes = "Asymmetric")]
         [HttpPut("{id}")]
         public async Task<IActionResult> ChangeHospitalFromId(int id, [FromBody] Hospitals_Create dtoObj)
@@ -209,7 +365,7 @@ namespace Simbir.Health.HospitalAPI.Controllers
                 if (response.StatusCode == HttpStatusCode.Unauthorized)
                     return Unauthorized();
 
-                if (response.Content.ReadAsStringAsync().Result.Equals("valid"))
+                if (response.StatusCode == HttpStatusCode.OK)
                 {
                     List<string>? userRoles = new List<string>();
 
@@ -255,7 +411,33 @@ namespace Simbir.Health.HospitalAPI.Controllers
             }
         }
 
-        //Сделать
+        /// <summary>
+        /// Мягкое удаление записи о больнице
+        /// </summary>
+        /// <remarks>
+        /// Нужна авторизация по accessToken'у
+        /// 
+        /// Нужно ввести id больницы
+        /// 
+        /// Доступ: <font color="red">Только администраторы</font>
+        /// 
+        /// Пример авторизации:
+        /// 
+        ///     Bearer eyJhbGci...
+        /// 
+        /// Информация по токенам:
+        ///
+        ///     Срок действия AT(accessToken) - 10 минут
+        /// 
+        ///     Срок действия RT(refreshToken) - 7 дней
+        /// 
+        ///     Алгоритм шифрования токенов RS512
+        /// 
+        /// Проверить токен можно на сайте <a href="https://jwt.io/" target="_blank">jwt.io</a>
+        /// 
+        /// </remarks>
+        /// <returns></returns>
+
         [Authorize(AuthenticationSchemes = "Asymmetric")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteHospitalFromId(int id)
@@ -273,7 +455,7 @@ namespace Simbir.Health.HospitalAPI.Controllers
                 if (response.StatusCode == HttpStatusCode.Unauthorized)
                     return Unauthorized();
 
-                if (response.Content.ReadAsStringAsync().Result.Equals("valid"))
+                if (response.StatusCode == HttpStatusCode.OK)
                 {
                     List<string>? userRoles = new List<string>();
 
@@ -318,27 +500,5 @@ namespace Simbir.Health.HospitalAPI.Controllers
                 return BadRequest();
             }
         }
-
-
-        //[HttpGet("Test_Get_Messages")]
-        //public async Task<IActionResult> GetMessagesTest()
-        //{
-        //    //try
-        //    //{
-        //    //    var messages = await _rabbitmq.GetMessages("test_queue");
-
-        //    //    if (messages.messages_consumed != null)
-        //    //    {
-        //    //        return Ok(messages.messages_consumed);
-        //    //    }
-
-        //    //    return BadRequest();
-        //    //}
-        //    //catch (Exception e) { 
-
-        //        return BadRequest();
-        //    //}
-        //}
-
     }
 }

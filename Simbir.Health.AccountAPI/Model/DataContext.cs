@@ -5,7 +5,13 @@ namespace Simbir.Health.AccountAPI.Model
 {
     public class DataContext : DbContext
     {
-        public DataContext() => Database.EnsureCreated();
+        private readonly string _connectionString;
+
+        public DataContext(string connectionString)
+        {
+            _connectionString = connectionString;
+            Database.EnsureCreated();
+        }
 
         public DataContext(DbContextOptions<DataContext> options) : base(options) { }
 
@@ -15,7 +21,7 @@ namespace Simbir.Health.AccountAPI.Model
         {
             if (!optionsBuilder.IsConfigured)
             {
-                optionsBuilder.UseNpgsql("Server=postgres_db;Database=simbirhealth;Port=5432;User Id=volgait_practice;Password=root;");
+                optionsBuilder.UseNpgsql(_connectionString);
             }
         }
 

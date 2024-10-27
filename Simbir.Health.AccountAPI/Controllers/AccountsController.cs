@@ -34,7 +34,7 @@ namespace Simbir.Health.AccountAPI.Controllers
         /// 
         /// Информация по токенам:
         ///
-        ///     Срок действия AT(accessToken) - 2 минуты
+        ///     Срок действия AT(accessToken) - 10 минут
         /// 
         ///     Срок действия RT(refreshToken) - 7 дней
         /// 
@@ -62,6 +62,8 @@ namespace Simbir.Health.AccountAPI.Controllers
 
                 if (info_user != null)
                     return Ok(info_user);
+                else
+                    return BadRequest("account_not_found");
             }
 
             return BadRequest();
@@ -88,7 +90,7 @@ namespace Simbir.Health.AccountAPI.Controllers
         ///     
         /// Информация по токенам:
         ///
-        ///     Срок действия AT(accessToken) - 2 минуты
+        ///     Срок действия AT(accessToken) - 10 минут
         /// 
         ///     Срок действия RT(refreshToken) - 7 дней
         /// 
@@ -116,7 +118,7 @@ namespace Simbir.Health.AccountAPI.Controllers
                 try
                 {
                     await _database.UpdateAccount(dtoObj, validation.token_success.Id);
-                    return Ok($"account {validation.token_success.Id} updated");
+                    return Ok("account_updated");
                 }
                 catch (Exception e) {
                     return BadRequest();
@@ -147,7 +149,7 @@ namespace Simbir.Health.AccountAPI.Controllers
         /// 
         /// Информация по токенам:
         ///
-        ///     Срок действия AT(accessToken) - 2 минуты
+        ///     Срок действия AT(accessToken) - 10 минут
         /// 
         ///     Срок действия RT(refreshToken) - 7 дней
         /// 
@@ -159,7 +161,7 @@ namespace Simbir.Health.AccountAPI.Controllers
         /// <returns></returns>
         [Authorize(AuthenticationSchemes = "Asymmetric")]
         [HttpGet]
-        public async Task<IActionResult> GetAllAsync([FromQuery] int from, [FromQuery] int count)
+        public async Task<IActionResult> GetAll([FromQuery] int from, [FromQuery] int count)
         {
             string bearer_key = Request.Headers["Authorization"];
 
@@ -205,7 +207,7 @@ namespace Simbir.Health.AccountAPI.Controllers
         ///     
         /// Информация по токенам:
         ///
-        ///     Срок действия AT(accessToken) - 2 минуты
+        ///     Срок действия AT(accessToken) - 10 минут
         /// 
         ///     Срок действия RT(refreshToken) - 7 дней
         /// 
@@ -231,7 +233,7 @@ namespace Simbir.Health.AccountAPI.Controllers
                 try
                 {
                     await _database.RegisterUserWithAdmin(dtoObj);
-                    return Ok($"account {dtoObj.username} created");
+                    return Ok($"account_created");
                 }
                 catch (Exception e)
                 {
@@ -271,7 +273,7 @@ namespace Simbir.Health.AccountAPI.Controllers
         ///     
         /// Информация по токенам:
         ///
-        ///     Срок действия AT(accessToken) - 2 минуты
+        ///     Срок действия AT(accessToken) - 10 минут
         /// 
         ///     Срок действия RT(refreshToken) - 7 дней
         /// 
@@ -297,7 +299,7 @@ namespace Simbir.Health.AccountAPI.Controllers
                 try
                 {
                     await _database.UpdateAccountWithAdmin(dtoObj, id);
-                    return Ok($"account changed");
+                    return Ok($"account_changed");
                 }
                 catch (Exception e)
                 {
@@ -324,7 +326,7 @@ namespace Simbir.Health.AccountAPI.Controllers
         /// 
         /// Информация по токенам:
         ///
-        ///     Срок действия AT(accessToken) - 2 минуты
+        ///     Срок действия AT(accessToken) - 10 минут
         /// 
         ///     Срок действия RT(refreshToken) - 7 дней
         /// 
@@ -350,7 +352,7 @@ namespace Simbir.Health.AccountAPI.Controllers
                 try
                 {
                     await _database.DeleteAccountWithAdmin(id);
-                    return Ok($"account deleted");
+                    return Ok($"account_deleted");
                 }
                 catch (Exception e)
                 {

@@ -97,13 +97,13 @@ namespace Simbir.Health.HospitalAPI.SDK
         {
             using (DataContext db = new DataContext(_conf.GetConnectionString("ServerConn")))
             {
-                var filtered_query = db.hospitalTableObj.Where(o => o.id == id);
+                var filtered_query = db.hospitalTableObj.Where(o => o.id == id).FirstOrDefault();
 
-                foreach (var hospitalInfo in filtered_query)
+                if (filtered_query != null)
                 {
                     return new Hospitals_Rooms()
                     {
-                        rooms = hospitalInfo.rooms
+                        rooms = filtered_query.rooms
                     };
                 }
             }

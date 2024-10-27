@@ -22,6 +22,37 @@ namespace Simbir.Health.TimetableAPI.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("Simbir.Health.TimetableAPI.Model.Database.DBO.AppointmentsTable", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("doctorId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("hospitalId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("room")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("time")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("timetableId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("userId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("appointmentsTableObj");
+                });
+
             modelBuilder.Entity("Simbir.Health.TimetableAPI.Model.Database.DBO.Timetable", b =>
                 {
                     b.Property<int>("Id")

@@ -63,10 +63,10 @@ namespace Simbir.Health.Hospital
                     }
                 });
 
-                //var basePath = AppContext.BaseDirectory;
+                var basePath = AppContext.BaseDirectory;
 
-                //var xmlPath = Path.Combine(basePath, "apidocs.xml");
-                //o.IncludeXmlComments(xmlPath);
+                var xmlPath = Path.Combine(basePath, "apidocsHospitals.xml");
+                o.IncludeXmlComments(xmlPath);
             });
 
     
@@ -130,8 +130,6 @@ BVVGSvbFKDiaJqprAgMBAAE=
 
             builder.Services.AddSingleton<IDatabaseService, DatabaseSDK>();
 
-            builder.Services.AddSingleton<ICacheService, CacheSDK>();
-
             //builder.Services.AddSingleton<IRabbitMQService, RabbitSDK>();
 
             //var db = new DataContext(builder.Configuration);
@@ -150,6 +148,19 @@ BVVGSvbFKDiaJqprAgMBAAE=
                     c.RoutePrefix = "ui-swagger";
                 });
             }
+
+            //перенаправление с корневого пути к swagger 
+            app.Use(async (context, next) =>
+            {
+                if (context.Request.Path == "/")
+                {
+                    context.Response.Redirect("/ui-swagger/");
+                }
+                else
+                {
+                    await next();
+                }
+            });
 
             app.UseHttpsRedirection();
 

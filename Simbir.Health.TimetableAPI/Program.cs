@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Simbir.Health.TimetableAPI.Controllers;
+using Simbir.Health.TimetableAPI.Model;
 using Simbir.Health.TimetableAPI.Model.Database;
 using Simbir.Health.TimetableAPI.SDK;
 using Simbir.Health.TimetableAPI.SDK.Services;
@@ -61,10 +62,11 @@ namespace Simbir.Health.TimetableAPI
                     }
                 });
 
-                //var basePath = AppContext.BaseDirectory;
+                o.SchemaFilter<ExampleSchemaFilter>();
+                var basePath = AppContext.BaseDirectory;
 
-                //var xmlPath = Path.Combine(basePath, "apidocs.xml");
-                //o.IncludeXmlComments(xmlPath);
+                var xmlPath = Path.Combine(basePath, "apidocsTimetable.xml");
+                o.IncludeXmlComments(xmlPath);
             });
 
             builder.Services.AddAuthentication(o =>
@@ -123,7 +125,14 @@ BVVGSvbFKDiaJqprAgMBAAE=
                 o.Timeout = TimeSpan.FromSeconds(30);
             });
 
+            builder.Services.AddHttpClient<AppointmentController>(o =>
+            {
+                o.Timeout = TimeSpan.FromSeconds(30);
+            });
+
             builder.Services.AddSingleton<IDatabaseService, DatabaseSDK>();
+
+            builder.Services.AddSingleton<ICacheService, CacheSDK>();
 
             //var db = new DataContext(builder.Configuration.GetConnectionString("ServerConn"));
 
@@ -133,14 +142,27 @@ BVVGSvbFKDiaJqprAgMBAAE=
 
             if (app.Environment.IsDevelopment())
             {
-                app.UseSwagger();
+                app.UseSwagger();   
 
                 app.UseSwaggerUI(c =>
                 {
-                    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Hospitals API");
+                    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Timetable API");
                     c.RoutePrefix = "ui-swagger";
                 });
             }
+
+            //перенаправление с корневого пути к swagger 
+            app.Use(async (context, next) =>
+            {
+                if (context.Request.Path == "/")
+                {
+                    context.Response.Redirect("/ui-swagger/");
+                }
+                else
+                {
+                    await next();
+                }
+            });
 
             app.UseHttpsRedirection();
 
@@ -151,6 +173,7 @@ BVVGSvbFKDiaJqprAgMBAAE=
             app.MapControllers();
 
             app.Run();
+
         }
     }
 }

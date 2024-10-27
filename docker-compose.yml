@@ -92,21 +92,21 @@ services:
     stdin_open: true
   #
 
-  #RabbitMQ
-  rabbitmq_broker:
-    image: rabbitmq:3-management
-    container_name: Simbir.Health.RabbitMQ
-    hostname: rabbitmq
-    restart: always
-    volumes:
-      - ./rabbitmq_data:/var/lib/rabbitmq
-      - ./rabbitmq_data:/var/log/rabbitmq
-    ports:
-      - 5672:5672
-      - 15672:15672
-  #
+  # #RabbitMQ
+  # rabbitmq_broker:
+  #   image: rabbitmq:3-management
+  #   container_name: Simbir.Health.RabbitMQ
+  #   hostname: rabbitmq
+  #   restart: always
+  #   volumes:
+  #     - ./rabbitmq_data:/var/lib/rabbitmq
+  #     - ./rabbitmq_data:/var/log/rabbitmq
+  #   ports:
+  #     - 5672:5672
+  #     - 15672:15672
+  # #
 volumes:
   postgres_data:
   pgadmin_data:
-  rabbitmq_broker:  
+  # rabbitmq_broker:  
   redis_cache:  

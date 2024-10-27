@@ -17,6 +17,8 @@ namespace Simbir.Health.TimetableAPI.Model.Database
 
         public DbSet<Timetable> timeTableObj { get; set; }
 
+        public DbSet<AppointmentsTable> appointmentsTableObj { get; set; }
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             if (!optionsBuilder.IsConfigured)

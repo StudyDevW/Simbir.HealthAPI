@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
@@ -6,6 +6,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>02d7ad68-0ca4-4191-8ec3-281c7381836a</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
+    <DocumentationFile>C:\Users\qwert\source\repos\Simbir.HealthAPI\Simbir.Health.AccountAPI\bin\Debug\net6.0\apidocsTimetable.xml</DocumentationFile>
   </PropertyGroup>
 
 	<ItemGroup>

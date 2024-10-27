@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Microsoft.JSInterop.Infrastructure;
 using Simbir.Health.AccountAPI.Model;
 using Simbir.Health.AccountAPI.Model.Database.DBO;
@@ -13,9 +14,11 @@ namespace Simbir.Health.AccountAPI.SDK
     public class DatabaseSDK : IDatabaseService
     {
         private readonly ILogger _logger;
+        private readonly IConfiguration _conf;
 
-        public DatabaseSDK() {
+        public DatabaseSDK(IConfiguration configuration) {
             _logger = LoggerFactory.Create(builder => builder.AddConsole()).CreateLogger(string.Empty);
+            _conf = configuration;
         }
 
         public async Task RegisterUser(Auth_SignUp dto)
@@ -37,12 +40,12 @@ namespace Simbir.Health.AccountAPI.SDK
                 roles = roles_user
             };
 
-            using (DataContext db = new DataContext())
+            using (DataContext db = new DataContext(_conf.GetConnectionString("ServerConn")))
             {
                 db.userTableObj.Add(usersTable);
                 await db.SaveChangesAsync();
 
-                _logger.LogInformation($"RegisterUser: {dto.firstName}, зарегистрировался!");
+                _logger.LogInformation($"RegisterUser: {dto.firstName}, created");
             }
 
             return;
@@ -65,12 +68,12 @@ namespace Simbir.Health.AccountAPI.SDK
                 roles = dto.roles
             };
 
-            using (DataContext db = new DataContext())
+            using (DataContext db = new DataContext(_conf.GetConnectionString("ServerConn")))
             {
                 db.userTableObj.Add(usersTable);
                 await db.SaveChangesAsync();
 
-                _logger.LogInformation($"RegisterUserWithAdmin: {dto.firstName}, создан!");
+                _logger.LogInformation($"RegisterUserWithAdmin: {dto.firstName}, created");
             }
 
             return;
@@ -84,7 +87,7 @@ namespace Simbir.Health.AccountAPI.SDK
                 return new Auth_CheckInfo() { check_error = new Auth_CheckError { errorLog = "input_incorrect" } };
             }
 
-            using (DataContext db = new DataContext())
+            using (DataContext db = new DataContext(_conf.GetConnectionString("ServerConn")))
             {
                 foreach (var obj in db.userTableObj)
                 {
@@ -101,34 +104,34 @@ namespace Simbir.Health.AccountAPI.SDK
                 }
             }
 
-            _logger.LogError("CheckUser: Неправильное имя пользователя или пароль!");
+            _logger.LogError("CheckUser: username or password incorrect!");
             return new Auth_CheckInfo() { check_error = new Auth_CheckError { errorLog = "username/password_incorrect" } };
         }
         
-        public Accounts_Info InfoAccounts(int id)
+        public Accounts_Info? InfoAccounts(int id)
         {
-
-            using (DataContext db = new DataContext())
+            using (DataContext db = new DataContext(_conf.GetConnectionString("ServerConn")))
             {
-                foreach (var obj in db.userTableObj)
+                var selectedAcc = db.userTableObj.Where(c => c.id == id).FirstOrDefault();
+
+                if (selectedAcc != null)
                 {
-                    if (obj.id == id)
-                        return new Accounts_Info()
-                        {
-                            id = obj.id,
-                            firstName = obj.firstName,
-                            lastName = obj.lastName,
-                            roles = obj.roles
-                        };
+                    return new Accounts_Info()
+                    {
+                        id = selectedAcc.id,
+                        firstName = selectedAcc.firstName,
+                        lastName = selectedAcc.lastName,
+                        roles = selectedAcc.roles
+                    };
                 }
             }
 
-            return new Accounts_Info();
+            return null;
         }
 
-        public Accounts_Info InfoAccountDoctor(int id)
+        public Accounts_Info? InfoAccountDoctor(int id)
         {
-            using (DataContext db = new DataContext())
+            using (DataContext db = new DataContext(_conf.GetConnectionString("ServerConn")))
             {
                 var filtered_query = db.userTableObj.Where(o => o.id == id && o.roles.Contains("Doctor"))
                     .FirstOrDefault();
@@ -147,12 +150,12 @@ namespace Simbir.Health.AccountAPI.SDK
 
             }
 
-            return new Accounts_Info();
+            return null;
         }
 
         public async Task UpdateAccount(Accounts_Update dto, int id)
         {
-            using (DataContext db = new DataContext())
+            using (DataContext db = new DataContext(_conf.GetConnectionString("ServerConn")))
             {
                 var userToChange = db.userTableObj.Where(c => c.id == id).FirstOrDefault();
                     
@@ -162,38 +165,39 @@ namespace Simbir.Health.AccountAPI.SDK
                     {
                         userToChange.lastName = dto.lastName;
                         await db.SaveChangesAsync();
+
+                        _logger.LogInformation($"UpdateAccount: (id: {id} ) lastname was changed");
                     }
                     else
                     {
-                        _logger.LogInformation("UpdateAccount: lastname not changed");
+                        _logger.LogInformation($"UpdateAccount: (id: {id} ) lastname not changed");
                     }
 
                     if (userToChange.firstName != dto.firstName)
                     {
                         userToChange.firstName = dto.firstName; 
                         await db.SaveChangesAsync();
+
+                        _logger.LogInformation($"UpdateAccount: (id: {id} ) firstName was changed");
                     }
                     else
                     {
-                        _logger.LogInformation("UpdateAccount: firstname not changed");
+                        _logger.LogInformation($"UpdateAccount: (id: {id} ) firstname not changed");
                     }
 
+                    //Пароль не логирую
                     if (userToChange.password != dto.password)
                     {
                         userToChange.password = dto.password;
                         await db.SaveChangesAsync();
                     }
-                    //else
-                    //{
-                        //Не логируем пароль, так как это опасно!
-                    //}
                 }     
             }
         }
 
         public async Task UpdateAccountWithAdmin(Accounts_UpdateUser dto, int id)
         {
-            using (DataContext db = new DataContext())
+            using (DataContext db = new DataContext(_conf.GetConnectionString("ServerConn")))
             {
                 var userToChange = db.userTableObj.Where(c => c.id == id).FirstOrDefault();
 
@@ -203,30 +207,37 @@ namespace Simbir.Health.AccountAPI.SDK
                     {
                         userToChange.lastName = dto.lastName;
                         await db.SaveChangesAsync();
+
+                        _logger.LogInformation($"UpdateAccountWithAdmin: (id: {id} ) lastname was changed");
                     }
                     else
-                    {
-                        _logger.LogInformation("UpdateAccountWithAdmin: lastname not changed");
+                    {// (id: {id} ) 
+                        _logger.LogInformation($"UpdateAccountWithAdmin: (id: {id} ) lastname not changed");
                     }
 
                     if (userToChange.firstName != dto.firstName)
                     {
                         userToChange.firstName = dto.firstName;
                         await db.SaveChangesAsync();
+
+
+                        _logger.LogInformation($"UpdateAccountWithAdmin: (id: {id} ) firstname was changed");
                     }
                     else
                     {
-                        _logger.LogInformation("UpdateAccountWithAdmin: firstname not changed");
+                        _logger.LogInformation($"UpdateAccountWithAdmin: (id: {id} ) firstname not changed");
                     }
 
                     if (userToChange.username != dto.username)
                     {
                         userToChange.username = dto.username;
                         await db.SaveChangesAsync();
+
+                        _logger.LogInformation($"UpdateAccountWithAdmin: (id: {id} ) username was changed");
                     }
                     else
                     {
-                        _logger.LogInformation("UpdateAccountWithAdmin: username not changed");
+                        _logger.LogInformation($"UpdateAccountWithAdmin: (id: {id} ) username not changed");
                     }
 
                     if (userToChange.password != dto.password)
@@ -239,10 +250,12 @@ namespace Simbir.Health.AccountAPI.SDK
                     {
                         userToChange.roles = dto.roles;
                         await db.SaveChangesAsync();
+
+                        _logger.LogInformation($"UpdateAccountWithAdmin: (id: {id} ) roles was changed");
                     }
                     else
                     {
-                        _logger.LogInformation("UpdateAccountWithAdmin: roles not changed");
+                        _logger.LogInformation($"UpdateAccountWithAdmin: (id: {id} ) roles not changed");
                     }
                 }
             }
@@ -250,7 +263,7 @@ namespace Simbir.Health.AccountAPI.SDK
 
         public async Task DeleteAccountWithAdmin(int id)
         {
-            using (DataContext db = new DataContext())
+            using (DataContext db = new DataContext(_conf.GetConnectionString("ServerConn")))
             {
                 var userToChange = db.userTableObj.Where(c => c.id == id).FirstOrDefault();
 
@@ -258,6 +271,8 @@ namespace Simbir.Health.AccountAPI.SDK
                 {
                     db.userTableObj.Remove(userToChange);
                     await db.SaveChangesAsync();
+
+                    _logger.LogInformation($"DeleteAccountWithAdmin: (id: {id} ) was deleted");
                 }
             }
         }
@@ -272,7 +287,7 @@ namespace Simbir.Health.AccountAPI.SDK
 
             List<Accounts_Info> accounts = new List<Accounts_Info>();
 
-            using (DataContext db = new DataContext())
+            using (DataContext db = new DataContext(_conf.GetConnectionString("ServerConn")))
             {
                 if (_count != 0)
                 {
@@ -323,7 +338,7 @@ namespace Simbir.Health.AccountAPI.SDK
 
             List<Accounts_Info> accounts = new List<Accounts_Info>();
 
-            using (DataContext db = new DataContext())
+            using (DataContext db = new DataContext(_conf.GetConnectionString("ServerConn")))
             {
                 if (_count != 0)
                 {

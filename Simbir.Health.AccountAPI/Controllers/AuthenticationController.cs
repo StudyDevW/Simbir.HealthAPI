@@ -48,7 +48,7 @@ namespace Simbir.Health.AccountAPI.Controllers
             try
             {
                 await _database.RegisterUser(dtoObj);
-                return Ok();
+                return Ok("account_created");
             }
             catch (Exception e)
             {
@@ -70,7 +70,7 @@ namespace Simbir.Health.AccountAPI.Controllers
         ///     
         /// Информация по токенам:
         ///
-        ///     Срок действия AT(accessToken) - 2 минуты
+        ///     Срок действия AT(accessToken) - 10 минут
         /// 
         ///     Срок действия RT(refreshToken) - 7 дней
         /// 
@@ -99,7 +99,7 @@ namespace Simbir.Health.AccountAPI.Controllers
                     _cache.DeleteKeyFromStorage(check.check_success.Id, "refreshTokens");
                 
 
-                _cache.WriteKeyInStorage(check.check_success.Id, "accessTokens", accessToken, DateTime.UtcNow.AddMinutes(2));
+                _cache.WriteKeyInStorage(check.check_success.Id, "accessTokens", accessToken, DateTime.UtcNow.AddMinutes(10));
                 _cache.WriteKeyInStorage(check.check_success.Id, "refreshTokens", refreshToken, DateTime.UtcNow.AddDays(7));
 
 
@@ -127,7 +127,7 @@ namespace Simbir.Health.AccountAPI.Controllers
         /// 
         /// Информация по токенам:
         ///
-        ///     Срок действия AT(accessToken) - 2 минуты
+        ///     Срок действия AT(accessToken) - 10 минут
         /// 
         ///     Срок действия RT(refreshToken) - 7 дней
         /// 
@@ -172,7 +172,7 @@ namespace Simbir.Health.AccountAPI.Controllers
         /// 
         /// Информация по токенам:
         ///
-        ///     Срок действия AT(accessToken) - 2 минуты
+        ///     Срок действия AT(accessToken) - 10 минут
         /// 
         ///     Срок действия RT(refreshToken) - 7 дней
         /// 
@@ -201,7 +201,7 @@ namespace Simbir.Health.AccountAPI.Controllers
 
                 _cache.DeleteKeyFromStorage(validation.token_success.Id, "refreshTokens");
 
-                return Ok($"{validation.token_success.Id} is logout");
+                return Ok($"{validation.token_success.Id}_is_logout");
             }
 
             return Unauthorized();
@@ -248,7 +248,7 @@ namespace Simbir.Health.AccountAPI.Controllers
                     _cache.DeleteKeyFromStorage(authsuccess.Id, "refreshTokens");
 
 
-                _cache.WriteKeyInStorage(authsuccess.Id, "accessTokens", accessToken, DateTime.UtcNow.AddMinutes(2));
+                _cache.WriteKeyInStorage(authsuccess.Id, "accessTokens", accessToken, DateTime.UtcNow.AddMinutes(10));
                 _cache.WriteKeyInStorage(authsuccess.Id, "refreshTokens", refreshToken, DateTime.UtcNow.AddDays(7));
 
 

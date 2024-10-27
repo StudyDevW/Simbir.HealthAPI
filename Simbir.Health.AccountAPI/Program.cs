@@ -116,23 +116,11 @@ namespace Simbir.Health.AccountAPI
 
             builder.Services.AddSingleton<ICacheService, CacheSDK>();
 
-            //builder.Services.AddSingleton<IRabbitMQService, RabbitSDK>();
-
-            //builder.Services.AddSingleton<IRabbitListenerService, RabbitListener>();
-
             //var db = new DataContext();
 
             //db.Database.Migrate();
 
             var app = builder.Build();
-
-            ////Достаю из DI
-            //using (var scope = app.Services.CreateScope())
-            //{
-            //    var rabbitListener = scope.ServiceProvider.GetRequiredService<IRabbitListenerService>();
-            //    rabbitListener.Listen();
-
-            //}
 
             if (app.Environment.IsDevelopment())
             {
@@ -144,6 +132,19 @@ namespace Simbir.Health.AccountAPI
                     c.RoutePrefix = "ui-swagger";
                 });
             }
+
+            //перенаправление с корневого пути к swagger 
+            app.Use(async (context, next) =>
+            {
+                if (context.Request.Path == "/")
+                {
+                    context.Response.Redirect("/ui-swagger/");
+                }
+                else
+                {
+                    await next();
+                }
+            });
 
             app.UseHttpsRedirection();
 
