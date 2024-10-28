@@ -27,7 +27,7 @@ namespace Simbir.Health.AccountAPI
                 Scheme = "Bearer",
                 BearerFormat = "JWT",
                 In = ParameterLocation.Header,
-                Description = "Авторизация по accessToken'у",
+                Description = "Authorize accessToken",
             };
 
             var securityReq = new OpenApiSecurityRequirement()
@@ -56,10 +56,10 @@ namespace Simbir.Health.AccountAPI
                 {
                     Version = "v1",
                     Title = "Accounts API",
-                    Description = "API на ASP.NET, Олимпиада volga-it",
+                    Description = "ASP.NET core, Volga-it Olympiad",
                     Contact = new OpenApiContact
                     {
-                        Name = "Антон (Study) - Developer",
+                        Name = "Sychenko Anton - Developer",
                         Url = new Uri("https://github.com/StudyDevW")
                     }
                 });

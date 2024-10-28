@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -6,6 +7,7 @@ using Simbir.Health.TimetableAPI.Model;
 using Simbir.Health.TimetableAPI.Model.Database;
 using Simbir.Health.TimetableAPI.SDK;
 using Simbir.Health.TimetableAPI.SDK.Services;
+using System.Globalization;
 using System.Security.Cryptography;
 
 namespace Simbir.Health.TimetableAPI
@@ -25,7 +27,7 @@ namespace Simbir.Health.TimetableAPI
                 Scheme = "Bearer",
                 BearerFormat = "JWT",
                 In = ParameterLocation.Header,
-                Description = "Авторизация по accessToken'у",
+                Description = "Authorize accessToken",
             };
 
             var securityReq = new OpenApiSecurityRequirement()
@@ -54,10 +56,10 @@ namespace Simbir.Health.TimetableAPI
                 {
                     Version = "v1",
                     Title = "Timetable API",
-                    Description = "API на ASP.NET, Олимпиада volga-it",
+                    Description = "ASP.NET core, Volga-it Olympiad",
                     Contact = new OpenApiContact
                     {
-                        Name = "Антон (Study) - Developer",
+                        Name = "Sychenko Anton - Developer",
                         Url = new Uri("https://github.com/StudyDevW")
                     }
                 });
@@ -154,6 +156,7 @@ BVVGSvbFKDiaJqprAgMBAAE=
             //перенаправление с корневого пути к swagger 
             app.Use(async (context, next) =>
             {
+
                 if (context.Request.Path == "/")
                 {
                     context.Response.Redirect("/ui-swagger/");

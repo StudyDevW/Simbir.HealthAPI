@@ -3,7 +3,8 @@ version: '3.4'
 services:
   #AccountAPI
   simbir.health.accountapi:
-    image: ${DOCKER_REGISTRY-}simbirhealth_microservices
+    image: ${DOCKER_REGISTRY-}simbirhealth_accountservice:1.0
+    container_name: Simbir.Health.AccountAPI
     depends_on:
       - "postgres_db"
     build:
@@ -11,7 +12,8 @@ services:
       dockerfile: Simbir.Health.AccountAPI/Dockerfile
   #DocumentAPI
   simbir.health.documentapi:
-    image: ${DOCKER_REGISTRY-}simbirhealth_microservices
+    image: ${DOCKER_REGISTRY-}simbirhealth_documentservice:1.0
+    container_name: Simbir.Health.DocumentAPI
     depends_on:
       - "postgres_db"
     build:
@@ -19,7 +21,8 @@ services:
       dockerfile: Simbir.Health.DocumentAPI/Dockerfile
   #HospitalAPI
   simbir.health.hospitalapi:
-    image: ${DOCKER_REGISTRY-}simbirhealth_microservices
+    image: ${DOCKER_REGISTRY-}simbirhealth_hospitalservice:1.0
+    container_name: Simbir.Health.HospitalAPI
     depends_on:
       - "postgres_db"
     build:
@@ -27,7 +30,8 @@ services:
       dockerfile: Simbir.Health.HospitalAPI/Dockerfile
   #TimetableAPI
   simbir.health.timetableapi:
-    image: ${DOCKER_REGISTRY-}simbirhealth_microservices
+    image: ${DOCKER_REGISTRY-}simbirhealth_timetableservice:1.0
+    container_name: Simbir.Health.TimetableAPI
     depends_on:
       - "postgres_db"
     build:

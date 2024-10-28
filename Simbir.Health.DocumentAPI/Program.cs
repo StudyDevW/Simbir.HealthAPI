@@ -28,7 +28,7 @@ namespace Simbir.Health.DocumentAPI
                 Scheme = "Bearer",
                 BearerFormat = "JWT",
                 In = ParameterLocation.Header,
-                Description = "Авторизация по accessToken'у",
+                Description = "Authorize accessToken",
             };
 
             var securityReq = new OpenApiSecurityRequirement()
@@ -57,10 +57,10 @@ namespace Simbir.Health.DocumentAPI
                 {
                     Version = "v1",
                     Title = "Documents API",
-                    Description = "API на ASP.NET, Олимпиада volga-it",
+                    Description = "ASP.NET core, Volga-it Olympiad",
                     Contact = new OpenApiContact
                     {
-                        Name = "Антон (Study) - Developer",
+                        Name = "Sychenko Anton - Developer",
                         Url = new Uri("https://github.com/StudyDevW")
                     }
                 });

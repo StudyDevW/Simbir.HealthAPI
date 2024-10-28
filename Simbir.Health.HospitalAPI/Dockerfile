@@ -7,16 +7,16 @@ EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
-COPY ["Simbir.Health.Hospital/Simbir.Health.Hospital.csproj", "Simbir.Health.Hospital/"]
-RUN dotnet restore "Simbir.Health.Hospital/Simbir.Health.Hospital.csproj"
+COPY ["Simbir.Health.HospitalAPI/Simbir.Health.HospitalAPI.csproj", "Simbir.Health.HospitalAPI/"]
+RUN dotnet restore "Simbir.Health.HospitalAPI/Simbir.Health.HospitalAPI.csproj"
 COPY . .
-WORKDIR "/src/Simbir.Health.Hospital"
-RUN dotnet build "Simbir.Health.Hospital.csproj" -c Release -o /app/build
+WORKDIR "/src/Simbir.Health.HospitalAPI"
+RUN dotnet build "Simbir.Health.HospitalAPI.csproj" -c Release -o /app/build
 
 FROM build AS publish
-RUN dotnet publish "Simbir.Health.Hospital.csproj" -c Release -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "Simbir.Health.HospitalAPI.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "Simbir.Health.Hospital.dll"]
+ENTRYPOINT ["dotnet", "Simbir.Health.HospitalAPI.dll"]
