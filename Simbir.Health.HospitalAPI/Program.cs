@@ -132,9 +132,9 @@ BVVGSvbFKDiaJqprAgMBAAE=
 
             //builder.Services.AddSingleton<IRabbitMQService, RabbitSDK>();
 
-            //var db = new DataContext(builder.Configuration);
+            var db = new DataContext(builder.Configuration.GetConnectionString("ServerConn"));
 
-            //db.Database.Migrate();
+            db.Database.Migrate();
 
             var app = builder.Build();
 

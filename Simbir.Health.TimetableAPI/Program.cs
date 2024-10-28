@@ -136,9 +136,9 @@ BVVGSvbFKDiaJqprAgMBAAE=
 
             builder.Services.AddSingleton<ICacheService, CacheSDK>();
 
-            //var db = new DataContext(builder.Configuration.GetConnectionString("ServerConn"));
+            var db = new DataContext(builder.Configuration.GetConnectionString("ServerConn"));
 
-            //db.Database.Migrate();
+            db.Database.Migrate();
 
             var app = builder.Build();
 
