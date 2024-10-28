@@ -115,7 +115,7 @@ namespace Simbir.Health.AccountAPI
             builder.Services.AddSingleton<IJwtService, JwtSDK>();
 
             builder.Services.AddSingleton<ICacheService, CacheSDK>();
-
+            //
             var db = new DataContext(builder.Configuration.GetConnectionString("ServerConn"));
 
             db.Database.Migrate();
