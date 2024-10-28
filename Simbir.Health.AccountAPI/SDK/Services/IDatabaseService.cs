@@ -25,5 +25,6 @@ namespace Simbir.Health.AccountAPI.SDK.Services
         public Accounts_GetAll GetAllDoctors(int _from, int _count, string nameFilter);
 
         public Accounts_Info? InfoAccountDoctor(int id);
+
     }
 }

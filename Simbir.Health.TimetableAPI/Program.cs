@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Npgsql;
 using Simbir.Health.TimetableAPI.Controllers;
 using Simbir.Health.TimetableAPI.Model;
 using Simbir.Health.TimetableAPI.Model.Database;
@@ -14,7 +15,7 @@ namespace Simbir.Health.TimetableAPI
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
@@ -136,11 +137,10 @@ BVVGSvbFKDiaJqprAgMBAAE=
 
             builder.Services.AddSingleton<ICacheService, CacheSDK>();
             //
-            var db = new DataContext(builder.Configuration.GetConnectionString("ServerConn"));
-
-            db.Database.Migrate();
-
+  
             var app = builder.Build();
+
+            await EnsureDatabaseInitializedAsync(app);
 
             if (app.Environment.IsDevelopment())
             {
@@ -175,8 +175,44 @@ BVVGSvbFKDiaJqprAgMBAAE=
 
             app.MapControllers();
 
-            app.Run();
+            await app.RunAsync();
 
+        }
+
+
+        private static async Task<bool> CheckIfTableExistsAsync(DbContext context, string tableName)
+        {
+            var connection = (NpgsqlConnection)context.Database.GetDbConnection();
+            await connection.OpenAsync();
+
+            var exists = false;
+
+            var command = new NpgsqlCommand(
+                $"SELECT EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = '{tableName}');",
+                connection);
+
+            exists = (bool)await command.ExecuteScalarAsync();
+
+            await connection.CloseAsync();
+            return exists;
+        }
+
+        private static async Task EnsureDatabaseInitializedAsync(WebApplication app)
+        {
+            using var scope = app.Services.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<DataContext>();
+
+            var tableNameF = "timeTableObj";
+            var tableNameS = "appointmentsTableObj";
+
+            var tableExistsFirst = await CheckIfTableExistsAsync(context, tableNameF);
+
+            var tableExistsSecond = await CheckIfTableExistsAsync(context, tableNameS);
+
+            if (!tableExistsFirst && !tableExistsSecond)
+            {
+                await context.Database.MigrateAsync();
+            }
         }
     }
 }

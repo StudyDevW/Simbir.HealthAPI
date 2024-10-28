@@ -11,9 +11,13 @@ namespace Simbir.Health.TimetableAPI.Model.Database
         {
             _connectionString = connectionString;
             Database.EnsureCreated();
+
         }
 
-        public DataContext(DbContextOptions<DataContext> options) : base(options) { }
+        public DataContext(DbContextOptions<DataContext> options) : base(options) {
+
+         
+        }
 
         public DbSet<Timetable> timeTableObj { get; set; }
 

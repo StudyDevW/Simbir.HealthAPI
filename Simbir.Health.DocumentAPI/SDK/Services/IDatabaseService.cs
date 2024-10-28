@@ -11,5 +11,6 @@ namespace Simbir.Health.DocumentAPI.SDK.Services
         public History_Get? GetHistoryFromId(int id, int userId);
 
         public List<History_Get>? GetHistoryAccount(int id, int userId);
+
     }
 }

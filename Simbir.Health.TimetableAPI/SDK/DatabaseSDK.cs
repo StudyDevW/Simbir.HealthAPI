@@ -1,4 +1,5 @@
-﻿using Simbir.Health.TimetableAPI.Model.Database;
+﻿using Microsoft.EntityFrameworkCore;
+using Simbir.Health.TimetableAPI.Model.Database;
 using Simbir.Health.TimetableAPI.Model.Database.DBO;
 using Simbir.Health.TimetableAPI.Model.Database.DTO;
 using Simbir.Health.TimetableAPI.Model.Database.DTO.HospitalsSelect;
@@ -15,6 +16,7 @@ namespace Simbir.Health.TimetableAPI.SDK
         public DatabaseSDK(IConfiguration configuration) {
             _logger = LoggerFactory.Create(builder => builder.AddConsole()).CreateLogger(string.Empty);
             _conf = configuration;
+       
         }
 
         private bool TimeValid(DateTime from, DateTime to)

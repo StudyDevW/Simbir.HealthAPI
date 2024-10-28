@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Npgsql;
 using Simbir.Health.HospitalAPI.Model.Database.DBO;
 using System.Collections.Generic;
 using System.Reflection.Emit;
@@ -19,6 +20,8 @@ namespace Simbir.Health.HospitalAPI.Model
         public DataContext(DbContextOptions<DataContext> options) : base(options) {  }
 
         public DbSet<HospitalTable> hospitalTableObj { get; set; }
+
+  
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

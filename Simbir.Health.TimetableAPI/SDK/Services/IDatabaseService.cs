@@ -26,5 +26,6 @@ namespace Simbir.Health.TimetableAPI.SDK.Services
         public List<Appointments_Free> FreeAppointments(int id);
 
         public Task DeleteAppoinment(int appointment_id, int userId);
+
     }
 }

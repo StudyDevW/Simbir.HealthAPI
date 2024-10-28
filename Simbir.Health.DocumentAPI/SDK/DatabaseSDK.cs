@@ -1,4 +1,5 @@
-﻿using Simbir.Health.DocumentAPI.Model.Database;
+﻿using Microsoft.EntityFrameworkCore;
+using Simbir.Health.DocumentAPI.Model.Database;
 using Simbir.Health.DocumentAPI.Model.Database.DBO;
 using Simbir.Health.DocumentAPI.Model.Database.DTO;
 using Simbir.Health.DocumentAPI.SDK.Services;

@@ -10,6 +10,7 @@ services:
     build:
       context: .
       dockerfile: Simbir.Health.AccountAPI/Dockerfile
+    restart: unless-stopped
   #DocumentAPI
   simbir.health.documentapi:
     image: ${DOCKER_REGISTRY-}simbirhealth_documentservice:1.0
@@ -19,6 +20,7 @@ services:
     build:
       context: .
       dockerfile: Simbir.Health.DocumentAPI/Dockerfile
+    restart: unless-stopped
   #HospitalAPI
   simbir.health.hospitalapi:
     image: ${DOCKER_REGISTRY-}simbirhealth_hospitalservice:1.0
@@ -28,6 +30,7 @@ services:
     build:
       context: .
       dockerfile: Simbir.Health.HospitalAPI/Dockerfile
+    restart: unless-stopped
   #TimetableAPI
   simbir.health.timetableapi:
     image: ${DOCKER_REGISTRY-}simbirhealth_timetableservice:1.0
@@ -37,6 +40,7 @@ services:
     build:
       context: .
       dockerfile: Simbir.Health.TimetableAPI/Dockerfile
+    restart: unless-stopped
   #PostgreSQL
   postgres_db:
     image: postgres:17.0-bookworm

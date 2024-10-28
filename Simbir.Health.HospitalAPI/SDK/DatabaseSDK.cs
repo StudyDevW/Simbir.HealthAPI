@@ -1,4 +1,5 @@
-﻿using Simbir.Health.HospitalAPI.Model;
+﻿using Microsoft.EntityFrameworkCore;
+using Simbir.Health.HospitalAPI.Model;
 using Simbir.Health.HospitalAPI.Model.Database.DBO;
 using Simbir.Health.HospitalAPI.Model.Database.DTO;
 using Simbir.Health.HospitalAPI.Model.Database.DTO.HospitalsSelect;

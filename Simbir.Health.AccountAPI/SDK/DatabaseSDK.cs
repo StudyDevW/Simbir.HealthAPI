@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.JSInterop.Infrastructure;
 using Simbir.Health.AccountAPI.Model;
@@ -19,6 +20,7 @@ namespace Simbir.Health.AccountAPI.SDK
         public DatabaseSDK(IConfiguration configuration) {
             _logger = LoggerFactory.Create(builder => builder.AddConsole()).CreateLogger(string.Empty);
             _conf = configuration;
+
         }
 
         public async Task RegisterUser(Auth_SignUp dto)

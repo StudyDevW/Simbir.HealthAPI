@@ -12,7 +12,7 @@ using Simbir.Health.AccountAPI.Model;
 namespace Simbir.Health.AccountAPI.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20241004230735_Init")]
+    [Migration("20241028111953_Init")]
     partial class Init
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

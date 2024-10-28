@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Npgsql;
 using Simbir.Health.AccountAPI.Model;
 using Simbir.Health.AccountAPI.Model.Database.DBO;
 using Simbir.Health.AccountAPI.SDK;
@@ -14,7 +15,7 @@ namespace Simbir.Health.AccountAPI
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
@@ -104,23 +105,24 @@ namespace Simbir.Health.AccountAPI
                 o.TokenValidationParameters = tk_valid;
             });
 
-
             builder.Services.AddDbContext<DataContext>(options =>
             {
                 options.UseNpgsql(builder.Configuration.GetConnectionString("ServerConn"));
             });
+
+      
 
             builder.Services.AddSingleton<IDatabaseService, DatabaseSDK>();
 
             builder.Services.AddSingleton<IJwtService, JwtSDK>();
 
             builder.Services.AddSingleton<ICacheService, CacheSDK>();
-            //
-            var db = new DataContext(builder.Configuration.GetConnectionString("ServerConn"));
 
-            db.Database.Migrate();
+  
 
             var app = builder.Build();
+
+            await EnsureDatabaseInitializedAsync(app);
 
             if (app.Environment.IsDevelopment())
             {
@@ -154,7 +156,38 @@ namespace Simbir.Health.AccountAPI
 
             app.MapControllers();
 
-            app.Run();
+            await app.RunAsync();
+        }
+
+        private static async Task<bool> CheckIfTableExistsAsync(DbContext context, string tableName)
+        {
+            var connection = (NpgsqlConnection)context.Database.GetDbConnection();
+            await connection.OpenAsync();
+
+            var exists = false;
+
+            var command = new NpgsqlCommand(
+                $"SELECT EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = '{tableName}');",
+                connection);
+
+            exists = (bool)await command.ExecuteScalarAsync();
+
+            await connection.CloseAsync();
+            return exists;
+        }
+
+        private static async Task EnsureDatabaseInitializedAsync(WebApplication app)
+        {
+            using var scope = app.Services.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<DataContext>();
+
+            var tableName = "userTableObj";
+            var tableExists = await CheckIfTableExistsAsync(context, tableName);
+
+            if (!tableExists)
+            {
+                await context.Database.MigrateAsync();
+            }
         }
     }
 }
