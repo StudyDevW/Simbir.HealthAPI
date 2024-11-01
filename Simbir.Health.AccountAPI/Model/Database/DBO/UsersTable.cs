@@ -14,6 +14,6 @@ namespace Simbir.Health.AccountAPI.Model.Database.DBO
 
         public string? password { get; set; }
 
-        public List<string>? roles { get; set; }
+        public string[]? roles { get; set; }
     }
 }

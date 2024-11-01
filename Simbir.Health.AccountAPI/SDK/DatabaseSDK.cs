@@ -31,7 +31,7 @@ namespace Simbir.Health.AccountAPI.SDK
                 return;
             }
 
-            List<string> roles_user = new List<string>() { "User" };
+            string[] roles_user = new [] { "User" };
 
             UsersTable usersTable = new UsersTable()
             {
@@ -67,7 +67,7 @@ namespace Simbir.Health.AccountAPI.SDK
                 lastName = dto.lastName,
                 password = dto.password,
                 username = dto.username,
-                roles = dto.roles
+                roles = dto.roles.ToArray()
             };
 
             using (DataContext db = new DataContext(_conf.GetConnectionString("ServerConn")))
@@ -100,7 +100,7 @@ namespace Simbir.Health.AccountAPI.SDK
                             {
                                 Id = obj.id,
                                 username = obj.username,
-                                roles = obj.roles
+                                roles = obj.roles.ToList()
                             } 
                         };
                 }
@@ -123,7 +123,7 @@ namespace Simbir.Health.AccountAPI.SDK
                         id = selectedAcc.id,
                         firstName = selectedAcc.firstName,
                         lastName = selectedAcc.lastName,
-                        roles = selectedAcc.roles
+                        roles = selectedAcc.roles.ToList()
                     };
                 }
             }
@@ -145,7 +145,7 @@ namespace Simbir.Health.AccountAPI.SDK
                         id = filtered_query.id,
                         firstName = filtered_query.firstName,
                         lastName = filtered_query.lastName,
-                        roles = filtered_query.roles
+                        roles = filtered_query.roles.ToList()
                     };
                 }
 
@@ -248,9 +248,9 @@ namespace Simbir.Health.AccountAPI.SDK
                         await db.SaveChangesAsync();
                     }
 
-                    if (userToChange.roles != dto.roles)
+                    if (userToChange.roles.ToList() != dto.roles)
                     {
-                        userToChange.roles = dto.roles;
+                        userToChange.roles = dto.roles.ToArray();
                         await db.SaveChangesAsync();
 
                         _logger.LogInformation($"UpdateAccountWithAdmin: (id: {id} ) roles was changed");
@@ -302,7 +302,7 @@ namespace Simbir.Health.AccountAPI.SDK
                             id = account.id,
                             firstName = account.firstName,
                             lastName = account.lastName,
-                            roles = account.roles
+                            roles = account.roles.ToList()
                         };
 
                         accounts.Add(accountInfo);
@@ -319,7 +319,7 @@ namespace Simbir.Health.AccountAPI.SDK
                             id = account.id,
                             firstName = account.firstName,
                             lastName = account.lastName,
-                            roles = account.roles
+                            roles = account.roles.ToList()
                         };
 
                         accounts.Add(accountInfo);
@@ -355,7 +355,7 @@ namespace Simbir.Health.AccountAPI.SDK
                             id = account.id,
                             firstName = account.firstName,
                             lastName = account.lastName,
-                            roles = account.roles
+                            roles = account.roles.ToList()
                         };
 
                         accounts.Add(accountInfo);
@@ -373,7 +373,7 @@ namespace Simbir.Health.AccountAPI.SDK
                             id = account.id,
                             firstName = account.firstName,
                             lastName = account.lastName,
-                            roles = account.roles
+                            roles = account.roles.ToList()
                         };
 
                         accounts.Add(accountInfo);
