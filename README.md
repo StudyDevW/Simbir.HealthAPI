@@ -27,3 +27,6 @@
  POSTGRES_DB: simbirhealth<br>
  POSTGRES_USER: volgait_practice<br>
  POSTGRES_PASSWORD: root<br>
+
+# Занятое место (16 из 20)
+![image](https://github.com/user-attachments/assets/2f2a25f8-6b7d-440f-bb06-1f727d2cc2eb)
